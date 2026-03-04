@@ -8,9 +8,8 @@ const path = require("path");
 const { Client, GatewayIntentBits } = require('discord.js');
 
 // 2. Global Variables
-let users = {}; // Stores { socketId: { name: username, ip: userIP } }
-let messages = {}; 
-let bannedIPs = {}; // { ip: expiry_timestamp }
+let users = {}; 
+let bannedIPs = {}; 
 
 // 3. Discord Bot Setup (Kiko)
 const client = new Client({
@@ -56,7 +55,7 @@ setInterval(() => {
     const now = Date.now();
     for (const ip in bannedIPs) {
         if (now >= bannedIPs[ip]) {
-            sendToDiscord(ADMIN_CHANNEL_ID, `🔔 **Kiko Guard Notification:** IP \`${ip}\` unbanned ho gayi hai.`);
+            sendToDiscord(ADMIN_CHANNEL_ID, `🔔 **Kiko Guard Alert:** IP \`${ip}\` unbanned ho gayi hai.`);
             delete bannedIPs[ip];
         }
     }
@@ -70,83 +69,77 @@ app.use((req, res, next) => {
 });
 
 // ---------------------------------------------------------
-// DISCORD COMMANDS & HELP LOGIC
+// DISCORD COMMANDS: Role-Based Channel Logic
 // ---------------------------------------------------------
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
     const args = message.content.split(' ');
     const command = message.content.toLowerCase();
 
-    // ✨ SMART HELP FEATURE (Just type ! or !help)
+    // ✨ 1. SMART HELP (Context Aware)
     if (message.content === '!' || command === '!help') {
-        let helpMenu = "🤖 **Kiko Bot Help Menu**\n";
-        helpMenu += "━━━━━━━━━━━━━━━━━━━━\n";
-        helpMenu += "🔹 `!help` or `!` - Show this menu\n";
-        helpMenu += "🔹 `!online` - List all users currently on the website\n\n";
+        let helpText = "🤖 **Kiko Smart Menu**\n━━━━━━━━━━━━━━━━━━━━\n";
 
-        // Find IP Channel Specific
-        if (message.channel.id === FIND_IP_CHANNEL_ID || message.channel.id === ADMIN_CHANNEL_ID) {
-            helpMenu += "🔍 **Lookup Tools:**\n";
-            helpMenu += "🔹 `!findip <username>` - Get a user's live IP\n\n";
-        }
-
-        // Admin Channel Specific
         if (message.channel.id === ADMIN_CHANNEL_ID) {
-            helpMenu += "🛡️ **Admin Tools:**\n";
-            helpMenu += "🔹 `!ipban <IP> <Mins>` - Ban someone (Site unreachable)\n";
-            helpMenu += "🔹 `!ipunban <IP>` - Remove ban manually\n";
-            helpMenu += "🔹 `!banlist` - See all currently blocked IPs\n";
+            helpText += "🛡️ **Admin Tools (Banning):**\n";
+            helpText += "🔹 `!ipban <IP> <Mins>`\n";
+            helpText += "🔹 `!ipunban <IP>`\n";
+            helpText += "🔹 `!banlist`\n";
+        } 
+        else if (message.channel.id === FIND_IP_CHANNEL_ID) {
+            helpText += "🔍 **Lookup Tools (Staff):**\n";
+            helpText += "🔹 `!findip <username>`\n";
+            helpText += "🔹 `!online` - See who's active\n";
+        } 
+        else {
+            helpText += "🔹 `!help` - Show this menu\n";
+            helpText += "🔹 `!online` - See online users\n";
         }
-        helpMenu += "━━━━━━━━━━━━━━━━━━━━";
-        return message.reply(helpMenu);
+        
+        return message.reply(helpText + "━━━━━━━━━━━━━━━━━━━━");
     }
 
-    // ONLINE USERS COMMAND
-    if (command === '!online') {
-        const onlineUsers = Object.values(users).map(u => u.name);
-        return message.reply(onlineUsers.length > 0 ? `👥 **Users Online:** ${onlineUsers.join(', ')}` : "📝 No one is online right now.");
+    // 🛡️ 2. ADMIN CHANNEL COMMANDS ONLY
+    if (message.channel.id === ADMIN_CHANNEL_ID) {
+        if (command.startsWith('!ipban')) {
+            const ip = args[1], mins = parseInt(args[2]);
+            if (ip && !isNaN(mins)) {
+                bannedIPs[ip] = Date.now() + (mins * 60000);
+                message.reply(`🚫 IP \`${ip}\` banned for **${mins} mins**.`);
+                const all = await io.fetchSockets();
+                all.forEach(s => { if (getIP(s) === ip) s.disconnect(); });
+            } else message.reply("❌ Usage: `!ipban <IP> <Minutes>`");
+            return;
+        }
+        if (command.startsWith('!ipunban')) {
+            delete bannedIPs[args[1]];
+            return message.reply(`✅ IP \`${args[1]}\` unbanned.`);
+        }
+        if (command === '!banlist') {
+            const list = Object.keys(bannedIPs).filter(i => bannedIPs[i] > Date.now());
+            return message.reply(list.length > 0 ? `📜 **Banned IPs:**\n${list.join('\n')}` : "📝 No bans.");
+        }
     }
 
-    // FIND IP COMMAND (Case-Insensitive)
+    // 🔍 3. FIND IP CHANNEL COMMANDS ONLY
     if (message.channel.id === FIND_IP_CHANNEL_ID || message.channel.id === ADMIN_CHANNEL_ID) {
         if (command.startsWith('!findip')) {
             const target = args[1];
             if (!target) return message.reply("❌ Use: `!findip <username>`");
-            
-            const foundUser = Object.values(users).find(u => u.name.toLowerCase() === target.toLowerCase());
-            if (foundUser) {
-                message.reply(`🎯 **Found:** \`${foundUser.name}\`\n📍 **Live IP:** \`${foundUser.ip}\`\n🔨 **Quick Ban:** \`!ipban ${foundUser.ip} 20\``);
-            } else {
-                message.reply(`🤷‍♂️ **${target}** online nahi hai. \`!online\` use karke active users dekhein.`);
+            const found = Object.values(users).find(u => u.name.toLowerCase() === target.toLowerCase());
+            if (found) {
+                return message.reply(`🎯 **User Found:** \`${found.name}\`\n📍 **IP:** \`${found.ip}\`\n🔨 Ban in admin channel: \`!ipban ${found.ip} 20\``);
             }
-            return;
+            return message.reply(`🤷‍♂️ **${target}** online nahi hai.`);
+        }
+
+        if (command === '!online') {
+            const list = Object.values(users).map(u => u.name);
+            return message.reply(list.length > 0 ? `👥 **Online Users:** ${list.join(', ')}` : "📝 No one online.");
         }
     }
 
-    // ADMIN COMMANDS
-    if (message.channel.id === ADMIN_CHANNEL_ID) {
-        if (command.startsWith('!ipban')) {
-            const targetIP = args[1], minutes = parseInt(args[2]);
-            if (targetIP && !isNaN(minutes)) {
-                bannedIPs[targetIP] = Date.now() + (minutes * 60000);
-                message.reply(`🚫 **Banned:** \`${targetIP}\` for **${minutes}m**. Connection destroyed.`);
-                const allSockets = await io.fetchSockets();
-                allSockets.forEach(s => { if (getIP(s) === targetIP) s.disconnect(); });
-            }
-        }
-
-        if (command.startsWith('!ipunban')) {
-            delete bannedIPs[args[1]];
-            message.reply(`✅ **Unbanned:** \`${args[1]}\``);
-        }
-
-        if (command === '!banlist') {
-            const list = Object.keys(bannedIPs).filter(ip => bannedIPs[ip] > Date.now());
-            message.reply(list.length > 0 ? `📜 **Active Bans:**\n${list.join('\n')}` : "📝 No active bans.");
-        }
-    }
-
-    // WEB SYNC
+    // 💬 4. CHAT SYNC (Only for Chat Channel)
     if (message.channel.id === CHAT_CHANNEL_ID) {
         io.emit("chat message", { sender: `[Discord] ${message.author.username}`, message: message.content, id: message.id });
     }
@@ -168,9 +161,8 @@ io.on("connection", (socket) => {
 
     socket.on("join", (username) => {
         const isDuplicate = Object.values(users).some(u => u.name.toLowerCase() === username.toLowerCase());
-        if (isDuplicate) {
-            socket.emit("duplicate");
-        } else {
+        if (isDuplicate) socket.emit("duplicate");
+        else {
             currentUserName = username;
             users[socket.id] = { name: username, ip: userIP };
             socket.emit("joined", username);
