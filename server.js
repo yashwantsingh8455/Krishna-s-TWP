@@ -96,7 +96,6 @@ io.on("connection", (socket) => {
 
 
 // Discord automated join and leave bot
-const express = require("express");
 const path = require("path");
 const { Client, GatewayIntentBits, EmbedBuilder, REST, Routes } = require('discord.js');
 
