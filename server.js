@@ -36,13 +36,18 @@ io.on("connection", (socket) => {
     }
   });
 
-  // --- Chat text message ---
-  socket.on("chat message", (msg) => {
+  // server.js ke andar "chat message" wala section replace karein
+  socket.on("chat message", (data) => {
     if (currentUser) {
-      const messageId = Date.now().toString();
-      messages[messageId] = { text: msg, userId: socket.id };
+      const messageId = Date.now().toString(); // Hum 'broadcast' use karenge taaki bhejnewale ko dubara na mile
+      // Aur pura data object bhejenge (sender, message, replyTo)
+      socket.broadcast.emit("chat message", {
+        ...data,
+        id: messageId,
+        sender: currentUser,
+      }); // Storage logic
 
-      io.emit("chat message", { id: messageId, user: currentUser, text: msg });
+      messages[messageId] = { text: data.message, userId: socket.id };
     }
   });
 
