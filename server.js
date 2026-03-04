@@ -8,7 +8,7 @@ const path = require("path");
 const { Client, GatewayIntentBits } = require('discord.js');
 
 // 2. Global Variables
-let users = {}; 
+let users = {}; // Now stores { socketId: { name: username, ip: userIP } }
 let messages = {}; 
 let bannedIPs = {}; // { ip: expiry_timestamp }
 
@@ -27,6 +27,7 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const STATUS_CHANNEL_ID = '1478764395491495977'; 
 const CHAT_CHANNEL_ID   = '1478795441926836298'; 
 const ADMIN_CHANNEL_ID  = '1478734555971063971'; 
+const FIND_IP_CHANNEL_ID = '1478816709048668342'; // 👈 Naya Channel ID yahan daalein
 
 // --- 🛠️ HELPER: Get IP for both Express & Socket ---
 function getIP(reqOrSocket) {
@@ -54,18 +55,17 @@ async function sendToDiscord(channelId, message, updateName = false) {
 }
 
 // ---------------------------------------------------------
-// NEW: AUTO BAN EXPIRY CHECKER (Har 1 minute mein check karega)
+// AUTO BAN EXPIRY CHECKER (Har 1 minute mein check karega)
 // ---------------------------------------------------------
 setInterval(() => {
     const now = Date.now();
     for (const ip in bannedIPs) {
         if (now >= bannedIPs[ip]) {
-            // Ban khatam ho gaya!
             sendToDiscord(ADMIN_CHANNEL_ID, `🔔 **Kiko Guard Notification:** IP \`${ip}\` ka ban time poora ho gaya hai. Woh ab website access kar sakta hai.`);
-            delete bannedIPs[ip]; // List se remove karo
+            delete bannedIPs[ip];
         }
     }
-}, 60000); // 60,000ms = 1 Minute
+}, 60000);
 
 // ---------------------------------------------------------
 // 4. AGGRESSIVE BAN MIDDLEWARE (HTTP Level)
@@ -73,7 +73,7 @@ setInterval(() => {
 app.use((req, res, next) => {
     const userIP = getIP(req);
     if (bannedIPs[userIP] && Date.now() < bannedIPs[userIP]) {
-        return res.socket.destroy(); // ERR_CONNECTION_CLOSED
+        return res.socket.destroy(); 
     }
     next();
 });
@@ -83,15 +83,32 @@ app.use((req, res, next) => {
 // ---------------------------------------------------------
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
+    const args = message.content.split(' ');
 
+    // 🔍 NEW: Find IP by Username Command
+    if (message.channel.id === FIND_IP_CHANNEL_ID || message.channel.id === ADMIN_CHANNEL_ID) {
+        if (message.content.startsWith('!findip')) {
+            const targetUsername = args[1];
+            if (!targetUsername) return message.reply("❌ **Usage:** `!findip <username>`");
+
+            // Online users mein dhoondo
+            const foundUser = Object.values(users).find(u => u.name === targetUsername);
+
+            if (foundUser) {
+                message.reply(`🎯 **User Found:** \`${targetUsername}\`\n📍 **Live IP:** \`${foundUser.ip}\`\n\nAb aap use ban kar sakte hain: \`!ipban ${foundUser.ip} 20\``);
+            } else {
+                message.reply(`🤷‍♂️ **${targetUsername}** abhi website par online nahi hai.`);
+            }
+            return;
+        }
+    }
+
+    // Admin Commands (Ban/Unban)
     if (message.channel.id === ADMIN_CHANNEL_ID) {
-        const args = message.content.split(' ');
-
         if (message.content.startsWith('!ipban')) {
             const targetIP = args[1];
             const minutes = parseInt(args[2]);
             if (targetIP && !isNaN(minutes)) {
-                // Formula: $expiry = Date.now() + (minutes \times 60000)$
                 bannedIPs[targetIP] = Date.now() + (minutes * 60000);
                 message.reply(`🚫 **Kiko Guard:** IP \`${targetIP}\` block kar di gayi hai **${minutes} minutes** ke liye.`);
                 
@@ -118,6 +135,7 @@ client.on('messageCreate', async (message) => {
         }
     }
 
+    // Chat Sync
     if (message.channel.id === CHAT_CHANNEL_ID) {
         io.emit("chat message", {
             sender: `[Discord] ${message.author.username}`,
@@ -142,16 +160,21 @@ io.use((socket, next) => {
 // 6. Merged Socket.IO Connection
 io.on("connection", (socket) => {
     const userIP = getIP(socket);
-    let currentUser = "";
+    let currentUserName = "";
 
     socket.on("join", (username) => {
-        if (Object.values(users).includes(username)) {
+        // Duplicate check using the new object structure
+        const isDuplicate = Object.values(users).some(u => u.name === username);
+        
+        if (isDuplicate) {
             socket.emit("duplicate");
         } else {
-            currentUser = username;
-            users[socket.id] = username;
+            currentUserName = username;
+            // Store both name and IP 
+            users[socket.id] = { name: username, ip: userIP };
+            
             socket.emit("joined", username);
-            io.emit("user list", Object.values(users));
+            io.emit("user list", Object.values(users).map(u => u.name));
             socket.broadcast.emit("server message", `${username} joined the chat`);
 
             const logMsg = `🌟 **${username}** joined the chat\n📍 **Real IP:** \`${userIP}\``;
@@ -160,11 +183,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("chat message", (data) => {
-        if (currentUser) {
+        if (currentUserName) {
             const messageId = Date.now().toString();
-            socket.broadcast.emit("chat message", { ...data, id: messageId, sender: currentUser });
+            socket.broadcast.emit("chat message", { ...data, id: messageId, sender: currentUserName });
 
-            let discordContent = `**${currentUser}**: ${data.message}`;
+            let discordContent = `**${currentUserName}**: ${data.message}`;
             if (data.replyTo) {
                 discordContent = `> *Replying to **${data.replyTo.sender}**: ${data.replyTo.message}*\n${discordContent}`;
             }
@@ -174,10 +197,10 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        if (currentUser) {
-            sendToDiscord(STATUS_CHANNEL_ID, `👋 **${currentUser}** (IP: \`${userIP}\`) left the chat`, true);
+        if (currentUserName) {
+            sendToDiscord(STATUS_CHANNEL_ID, `👋 **${currentUserName}** left the chat`, true);
             delete users[socket.id];
-            io.emit("user list", Object.values(users));
+            io.emit("user list", Object.values(users).map(u => u.name));
         }
     });
 });
