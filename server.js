@@ -22,12 +22,12 @@ const client = new Client({
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 
-// CHANNEL IDs SETUP
+// CHANNEL IDs SETUP (Inhe Private Rakhein)
 const STATUS_CHANNEL_ID  = '1478764395491495977'; 
 const CHAT_CHANNEL_ID    = '1478795441926836298'; 
 const ADMIN_CHANNEL_ID   = '1478734555971063971'; 
 const FIND_IP_CHANNEL_ID = '1478816709048668342'; 
-const MOD_LOG_CHANNEL_ID = '1478824787743735859'; // 👈 Yahan naya log channel ID daalein
+const MOD_LOG_CHANNEL_ID = '1478824787743735859'; 
 
 // --- 🛠️ HELPER: Get IP ---
 function getIP(reqOrSocket) {
@@ -57,7 +57,6 @@ setInterval(() => {
     for (const ip in bannedIPs) {
         if (now >= bannedIPs[ip]) {
             sendToDiscord(ADMIN_CHANNEL_ID, `🔔 **Kiko Guard Notification:** IP \`${ip}\` unbanned ho gayi hai.`);
-            // Mod Log mein bhi notify karein
             sendToDiscord(MOD_LOG_CHANNEL_ID, `✅ **Auto-Unban:** IP \`${ip}\` ka ban time khatam ho gaya.`);
             delete bannedIPs[ip];
         }
@@ -79,25 +78,21 @@ client.on('messageCreate', async (message) => {
     const args = message.content.split(' ');
     const command = message.content.toLowerCase();
 
-    // ✨ 1. SMART HELP
+    // ✨ SMART HELP
     if (message.content === '!' || command === '!help') {
-        let helpText = "🤖 **Kiko Smart Menu**\n━━━━━━━━━━━━━━━━━━━━\n";
-
+        let helpText = "🤖 **Kiko Admin Menu**\n━━━━━━━━━━━━━━━━━━━━\n";
         if (message.channel.id === ADMIN_CHANNEL_ID) {
-            helpText += "🛡️ **Admin Tools (Multiple Support):**\n🔹 `!ipban IP1,IP2 <Mins>`\n🔹 `!ipunban IP1,IP2`\n🔹 `!banlist`\n";
-        } 
-        else if (message.channel.id === FIND_IP_CHANNEL_ID) {
-            helpText += "🔍 **Lookup Tools (Staff):**\n🔹 `!findip <username>`\n🔹 `!online`\n";
-        } 
-        else {
-            helpText += "🔹 `!help` - Show menu\n🔹 `!online` - active users\n";
+            helpText += "🛡️ **Admin Tools:** `!ipban IP1,IP2 <Mins>`, `!ipunban`, `!banlist` (IPs only visible here)\n";
+        } else if (message.channel.id === FIND_IP_CHANNEL_ID) {
+            helpText += "🔍 **Staff Tools:** `!findip <username>`, `!online` (IP retrieval)\n";
+        } else {
+            helpText += "🔹 `!help` or `!online` - No private data shown here.\n";
         }
         return message.reply(helpText + "━━━━━━━━━━━━━━━━━━━━");
     }
 
-    // 🛡️ 2. ADMIN CHANNEL: Multiple Ban/Unban with Logs
+    // 🛡️ ADMIN CHANNEL: Multiple Ban/Unban with Alert Logic
     if (message.channel.id === ADMIN_CHANNEL_ID) {
-        // MULTIPLE BAN LOGIC
         if (command.startsWith('!ipban')) {
             const ipInput = args[1];
             const mins = parseInt(args[2]);
@@ -110,31 +105,29 @@ client.on('messageCreate', async (message) => {
                 ipList.forEach(ip => {
                     if (ip) {
                         bannedIPs[ip] = expiry;
-                        allSockets.forEach(s => { if (getIP(s) === ip) s.disconnect(); });
+                        allSockets.forEach(s => { 
+                            if (getIP(s) === ip) {
+                                // User ko message bhej rahe hain disconnect karne se pehle
+                                s.emit("ban_alert", "🚫 You are banned by admin! 🔨"); 
+                                setTimeout(() => s.disconnect(), 1500); 
+                            } 
+                        });
                     }
                 });
 
-                message.reply(`🚫 **Success:** Total **${ipList.length}** IPs banned.`);
-                
-                // 📝 MODERATION LOG
-                const logMsg = `🛡️ **MOD LOG: BAN**\n👤 **Admin:** ${message.author.tag}\n📍 **IPs:** \`${ipList.join(', ')}\`\n⏳ **Duration:** ${mins} mins`;
-                sendToDiscord(MOD_LOG_CHANNEL_ID, logMsg);
+                message.reply(`🚫 **Success:** Total **${ipList.length}** IPs banned with Alert.`);
+                sendToDiscord(MOD_LOG_CHANNEL_ID, `🛡️ **MOD LOG: BAN**\n👤 **Admin:** ${message.author.tag}\n📍 **IPs:** \`${ipList.join(', ')}\`\n⏳ **Duration:** ${mins} mins`);
             } else message.reply("❌ Use: `!ipban IP1,IP2 <Mins>`");
             return;
         }
 
-        // MULTIPLE UNBAN LOGIC
         if (command.startsWith('!ipunban')) {
             const ipInput = args[1];
             if (ipInput) {
                 const ipList = ipInput.split(',').map(i => i.trim());
                 ipList.forEach(ip => delete bannedIPs[ip]);
-                
                 message.reply(`✅ **Success:** **${ipList.length}** IPs unbanned.`);
-                
-                // 📝 MODERATION LOG
-                const logMsg = `🛡️ **MOD LOG: UNBAN**\n👤 **Admin:** ${message.author.tag}\n📍 **IPs:** \`${ipList.join(', ')}\``;
-                sendToDiscord(MOD_LOG_CHANNEL_ID, logMsg);
+                sendToDiscord(MOD_LOG_CHANNEL_ID, `🛡️ **MOD LOG: UNBAN**\n👤 **Admin:** ${message.author.tag}\n📍 **IPs:** \`${ipList.join(', ')}\``);
                 return;
             }
         }
@@ -145,14 +138,13 @@ client.on('messageCreate', async (message) => {
         }
     }
 
-    // 🔍 3. FIND IP CHANNEL COMMANDS
+    // 🔍 FIND IP CHANNEL
     if (message.channel.id === FIND_IP_CHANNEL_ID || message.channel.id === ADMIN_CHANNEL_ID) {
         if (command.startsWith('!findip')) {
             const target = args[1];
-            if (!target) return message.reply("❌ Use: `!findip <username>`");
-            const found = Object.values(users).find(u => u.name.toLowerCase() === target.toLowerCase());
+            const found = Object.values(users).find(u => u.name.toLowerCase() === (target || "").toLowerCase());
             if (found) {
-                return message.reply(`🎯 **User Found:** \`${found.name}\`\n📍 **IP:** \`${found.ip}\`\n🔨 Ban: \`!ipban ${found.ip} 20\``);
+                return message.reply(`🎯 **User Found:** \`${found.name}\`\n📍 **Private IP:** \`${found.ip}\`\n🔨 Ban: \`!ipban ${found.ip} 20\``);
             }
             return message.reply(`🤷‍♂️ **${target}** online nahi hai.`);
         }
@@ -162,7 +154,7 @@ client.on('messageCreate', async (message) => {
         }
     }
 
-    // 💬 4. CHAT SYNC
+    // 💬 CHAT SYNC (IP-Free)
     if (message.channel.id === CHAT_CHANNEL_ID) {
         io.emit("chat message", { sender: `[Discord] ${message.author.username}`, message: message.content, id: message.id });
     }
@@ -171,12 +163,6 @@ client.on('messageCreate', async (message) => {
 // --- SERVER & SOCKET LOGIC ---
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (req, res) => { res.sendFile(path.join(__dirname, "public", "index.html")); });
-
-io.use((socket, next) => {
-    const userIP = getIP(socket);
-    if (bannedIPs[userIP] && Date.now() < bannedIPs[userIP]) return next(new Error("Banned"));
-    next();
-});
 
 io.on("connection", (socket) => {
     const userIP = getIP(socket);
@@ -189,23 +175,25 @@ io.on("connection", (socket) => {
             currentUserName = username;
             users[socket.id] = { name: username, ip: userIP };
             socket.emit("joined", username);
+            
+            // Web privacy: No IP broadcast
             io.emit("user list", Object.values(users).map(u => u.name));
-            sendToDiscord(STATUS_CHANNEL_ID, `🌟 **${username}** joined (IP: \`${userIP}\`)`, true);
+            
+            // Discord Private Admin log: IP visible only to you
+            sendToDiscord(STATUS_CHANNEL_ID, `🌟 **${username}** joined\n📍 **Private IP:** \`${userIP}\``, true);
         }
     });
 
     socket.on("chat message", (data) => {
         if (currentUserName) {
             socket.broadcast.emit("chat message", { ...data, id: Date.now().toString(), sender: currentUserName });
-            let content = `**${currentUserName}**: ${data.message}`;
-            if (data.replyTo) content = `> *Replying to **${data.replyTo.sender}**: ${data.replyTo.message}*\n${content}`;
-            sendToDiscord(CHAT_CHANNEL_ID, content);
+            sendToDiscord(CHAT_CHANNEL_ID, `**${currentUserName}**: ${data.message}`);
         }
     });
 
     socket.on("disconnect", () => {
         if (currentUserName) {
-            sendToDiscord(STATUS_CHANNEL_ID, `👋 **${currentUserName}** left`, true);
+            sendToDiscord(STATUS_CHANNEL_ID, `👋 **${currentUserName}** left (Logged IP: \`${userIP}\`)`, true);
             delete users[socket.id];
             io.emit("user list", Object.values(users).map(u => u.name));
         }
