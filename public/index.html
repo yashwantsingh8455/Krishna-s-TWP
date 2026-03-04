@@ -1072,6 +1072,23 @@
         const emojiPicker = document.getElementById('emojiPicker');
 
 
+
+
+
+
+
+
+
+const adminPanelModal = document.getElementById('adminPanelModal');
+const targetUsernameInput = document.getElementById('targetUsername');
+const banReasonInput = document.getElementById('banReason');
+const adminStatusMessage = document.getElementById('adminStatusMessage');
+
+
+
+
+
+
         function autoScroll() {
           const cw = document.getElementById('chatWindow');
           cw.scrollTop = cw.scrollHeight;
@@ -1149,19 +1166,19 @@
         }
 
         // index.html JS file ke andar
-        socket.on('chat message', data => {
-          // Yahan ab koi filter nahi hai, kyunki server sirf dusre users ko bhej raha hai
-          appendMessage(data, false);
+// Client-side (HTML script tag ke andar)
+socket.on('chat message', data => {
+  // Agar server 'io.emit' kar raha hai, toh yeh check zaroori hai
+  if (data.sender !== currentUser) { 
+    appendMessage(data, false);
 
-          // Play sound
-          const sound = document.getElementById("notifSound");
-          if (sound) {
-            sound.currentTime = 0;
-            sound.play().catch(err => {
-              console.warn("Audio play blocked", err);
-            });
-          }
-        });
+    const sound = document.getElementById("notifSound");
+    if (sound) {
+      sound.currentTime = 0;
+      sound.play().catch(err => console.warn("Audio blocked", err));
+    }
+  }
+});
 
 
 
