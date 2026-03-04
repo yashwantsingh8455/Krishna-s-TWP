@@ -1056,6 +1056,17 @@
 
       <script src="/socket.io/socket.io.js"></script>
       <script>
+
+
+const adminPanelModal = document.getElementById('adminPanelModal');
+const targetUsernameInput = document.getElementById('targetUsername');
+const banReasonInput = document.getElementById('banReason');
+const adminStatusMessage = document.getElementById('adminStatusMessage');
+
+
+
+
+
         const socket = io();
         const login = document.getElementById('login');
         const chat = document.getElementById('chat');
@@ -1149,17 +1160,17 @@
         }
 
         // index.html JS file ke andar
+        // index.html ke script mein
         socket.on('chat message', data => {
-          // Yahan ab koi filter nahi hai, kyunki server sirf dusre users ko bhej raha hai
+          // Humne server par 'broadcast' use kiya hai, 
+          // isliye yahan sender check ki zarurat nahi hai (duplicate nahi hoga)
           appendMessage(data, false);
 
-          // Play sound
+          // Play sound logic
           const sound = document.getElementById("notifSound");
           if (sound) {
             sound.currentTime = 0;
-            sound.play().catch(err => {
-              console.warn("Audio play blocked", err);
-            });
+            sound.play().catch(err => console.warn("Audio blocked", err));
           }
         });
 
@@ -1684,18 +1695,18 @@
 
 
 
-function openAdminPanel(usernameToBan = '') {
-    // ⚠️ यह लाइन जोड़ें
-    console.log("Admin button clicked. Checking IS_ADMIN."); 
+        function openAdminPanel(usernameToBan = '') {
+          // ⚠️ यह लाइन जोड़ें
+          console.log("Admin button clicked. Checking IS_ADMIN.");
 
-    if (!adminPanelModal) {
-        console.error("CRITICAL: 'adminPanelModal' element not found."); 
-        alert("Admin panel setup error: Modal is missing or ID is incorrect.");
-        return;
-    }
-    // ... rest of the code ...
-}
-        
+          if (!adminPanelModal) {
+            console.error("CRITICAL: 'adminPanelModal' element not found.");
+            alert("Admin panel setup error: Modal is missing or ID is incorrect.");
+            return;
+          }
+          // ... rest of the code ...
+        }
+
       </script>
 
 </body>
