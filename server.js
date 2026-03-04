@@ -28,6 +28,13 @@ const STATUS_CHANNEL_ID = '1478764395491495977';
 const CHAT_CHANNEL_ID   = '1478795441926836298'; 
 const ADMIN_CHANNEL_ID  = '1478734555971063971'; 
 
+// --- 🛠️ HELPER: Get Real Clean IP ---
+// Render ki multi-IP list mein se sirf pehli (Real) IP nikalne ke liye
+function getCleanIP(socket) {
+    const rawIP = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
+    return rawIP.split(',')[0].trim();
+}
+
 // Helper Function: Send Discord Message
 async function sendToDiscord(channelId, message, updateName = false) {
     try {
@@ -41,57 +48,55 @@ async function sendToDiscord(channelId, message, updateName = false) {
             }
         }
     } catch (err) {
-        console.error(`Discord Error in channel ${channelId}:`, err.message);
+        console.error(`Discord Error:`, err.message);
     }
 }
 
 // ---------------------------------------------------------
-// KIKO CUSTOM ADMIN COMMANDS
+// DISCORD COMMANDS & SYNC LOGIC
 // ---------------------------------------------------------
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
+    // A. ADMIN COMMANDS (Custom Names to avoid conflicts)
     if (message.channel.id === ADMIN_CHANNEL_ID) {
         const args = message.content.split(' ');
 
-        // 1. CUSTOM IP BAN: !ipban <IP> <Minutes>
+        // 1. Ban: !ipban <IP> <Minutes>
         if (message.content.startsWith('!ipban')) {
             const targetIP = args[1];
             const minutes = parseInt(args[2]);
-
             if (targetIP && !isNaN(minutes)) {
-                bannedIPs[targetIP] = Date.now() + (minutes * 60000);
-                message.reply(`🚫 **Kiko Guard:** IP \`${targetIP}\` ko **${minutes} minutes** ke liye ban kar diya gaya hai.`);
+                bannedIPs[targetIP] = Date.now() + minutes * 60000;
+                message.reply(`🚫 **Kiko Guard:** IP \`${targetIP}\` banned for **${minutes} minutes**.`);
                 
-                // Active sockets kick karein
+                // Kick connected users matching this clean IP
                 const allSockets = await io.fetchSockets();
                 allSockets.forEach(s => {
-                    const ip = s.handshake.headers['x-forwarded-for'] || s.handshake.address;
-                    if (ip.includes(targetIP)) s.disconnect();
+                    if (getCleanIP(s) === targetIP) s.disconnect();
                 });
             } else {
-                message.reply("❌ **Sahi format:** `!ipban <IP> <Minutes>`\nExample: `!ipban 172.69.86.195 20`");
+                message.reply("❌ **Format:** `!ipban <IP> <Minutes>` (e.g., !ipban 49.36.xx.xx 20)");
             }
         }
 
-        // 2. CUSTOM IP UNBAN: !ipunban <IP>
+        // 2. Unban: !ipunban <IP>
         if (message.content.startsWith('!ipunban')) {
             const targetIP = args[1];
             if (targetIP) {
                 delete bannedIPs[targetIP];
-                message.reply(`✅ **Kiko Guard:** IP \`${targetIP}\` ab unbanned hai.`);
+                message.reply(`✅ **Kiko Guard:** IP \`${targetIP}\` unbanned.`);
             }
         }
 
-        // 3. BONUS: !banlist
+        // 3. Banlist: !banlist
         if (message.content === '!banlist') {
             const list = Object.keys(bannedIPs).filter(ip => bannedIPs[ip] > Date.now());
-            if (list.length === 0) return message.reply("📝 Filhaal koi bhi IP ban nahi hai.");
-            message.reply(`📜 **Banned IPs:**\n${list.join('\n')}`);
+            message.reply(list.length > 0 ? `📜 **Banned IPs:**\n${list.join('\n')}` : "📝 No active bans.");
         }
     }
 
-    // WEB SYNC (Chat Channel se)
+    // B. WEB SYNC (Chat Sync Logic)
     if (message.channel.id === CHAT_CHANNEL_ID) {
         io.emit("chat message", {
             sender: `[Discord] ${message.author.username}`,
@@ -105,18 +110,19 @@ client.on('messageCreate', async (message) => {
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (req, res) => { res.sendFile(path.join(__dirname, "public", "index.html")); });
 
-// IP BAN CHECK MIDDLEWARE
+// --- 🛡️ SOCKET.IO SECURITY MIDDLEWARE ---
+// Connection ke waqt hi banned IP ko block karein
 io.use((socket, next) => {
-    const userIP = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
+    const userIP = getCleanIP(socket);
     if (bannedIPs[userIP] && Date.now() < bannedIPs[userIP]) {
         return next(new Error("Banned"));
     }
     next();
 });
 
-// 5. Socket Connection Logic
+// 5. Merged Socket.IO Connection
 io.on("connection", (socket) => {
-    const userIP = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
+    const userIP = getCleanIP(socket);
     let currentUser = "";
 
     socket.on("join", (username) => {
@@ -129,7 +135,8 @@ io.on("connection", (socket) => {
             io.emit("user list", Object.values(users));
             socket.broadcast.emit("server message", `${username} joined the chat`);
 
-            const logMsg = `🌟 **${username}** joined\n📍 **Full IP:** \`${userIP}\``;
+            // Discord par log bhejte waqt CLEAN IP dikhao
+            const logMsg = `🌟 **${username}** joined the chat\n📍 **Real IP:** \`${userIP}\``;
             sendToDiscord(STATUS_CHANNEL_ID, logMsg, true);
         }
     });
@@ -141,6 +148,7 @@ io.on("connection", (socket) => {
 
             let discordContent = `**${currentUser}**: ${data.message}`;
             if (data.replyTo) {
+                // Formatting for Discord Quote
                 discordContent = `> *Replying to **${data.replyTo.sender}**: ${data.replyTo.message}*\n${discordContent}`;
             }
             sendToDiscord(CHAT_CHANNEL_ID, discordContent);
@@ -150,16 +158,17 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
         if (currentUser) {
-            sendToDiscord(STATUS_CHANNEL_ID, `👋 **${currentUser}** left (IP: \`${userIP}\`)`, true);
+            sendToDiscord(STATUS_CHANNEL_ID, `👋 **${currentUser}** (IP: \`${userIP}\`) left the chat`, true);
             delete users[socket.id];
             io.emit("user list", Object.values(users));
         }
     });
 });
 
+// 6. Start Kiko
 client.on('ready', () => { console.log(`✅ Kiko Bot is online as ${client.user.tag}`); });
 
 const PORT = process.env.PORT || 4000;
 client.login(DISCORD_TOKEN).then(() => {
-    http.listen(PORT, () => { console.log(`✅ Server running on http://localhost:${PORT}`); });
+    http.listen(PORT, () => { console.log(`✅ Server running on port ${PORT}`); });
 });
