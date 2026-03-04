@@ -9,7 +9,7 @@ const { Client, GatewayIntentBits } = require('discord.js');
 
 // 2. Global Variables
 let users = {}; 
-let bannedIPs = {}; 
+let bannedIPs = {}; // { ip: expiry_timestamp }
 
 // 3. Discord Bot Setup (Kiko)
 const client = new Client({
@@ -55,7 +55,7 @@ setInterval(() => {
     const now = Date.now();
     for (const ip in bannedIPs) {
         if (now >= bannedIPs[ip]) {
-            sendToDiscord(ADMIN_CHANNEL_ID, `🔔 **Kiko Guard Alert:** IP \`${ip}\` unbanned ho gayi hai.`);
+            sendToDiscord(ADMIN_CHANNEL_ID, `🔔 **Kiko Guard Notification:** IP \`${ip}\` unbanned ho gayi hai.`);
             delete bannedIPs[ip];
         }
     }
@@ -81,9 +81,9 @@ client.on('messageCreate', async (message) => {
         let helpText = "🤖 **Kiko Smart Menu**\n━━━━━━━━━━━━━━━━━━━━\n";
 
         if (message.channel.id === ADMIN_CHANNEL_ID) {
-            helpText += "🛡️ **Admin Tools (Banning):**\n";
-            helpText += "🔹 `!ipban <IP> <Mins>`\n";
-            helpText += "🔹 `!ipunban <IP>`\n";
+            helpText += "🛡️ **Admin Tools (Multiple Support):**\n";
+            helpText += "🔹 `!ipban IP1,IP2 <Mins>`\n";
+            helpText += "🔹 `!ipunban IP1,IP2`\n";
             helpText += "🔹 `!banlist`\n";
         } 
         else if (message.channel.id === FIND_IP_CHANNEL_ID) {
@@ -99,22 +99,40 @@ client.on('messageCreate', async (message) => {
         return message.reply(helpText + "━━━━━━━━━━━━━━━━━━━━");
     }
 
-    // 🛡️ 2. ADMIN CHANNEL COMMANDS ONLY
+    // 🛡️ 2. ADMIN CHANNEL: Multiple Ban/Unban Support
     if (message.channel.id === ADMIN_CHANNEL_ID) {
+        // MULTIPLE BAN
         if (command.startsWith('!ipban')) {
-            const ip = args[1], mins = parseInt(args[2]);
-            if (ip && !isNaN(mins)) {
-                bannedIPs[ip] = Date.now() + (mins * 60000);
-                message.reply(`🚫 IP \`${ip}\` banned for **${mins} mins**.`);
-                const all = await io.fetchSockets();
-                all.forEach(s => { if (getIP(s) === ip) s.disconnect(); });
-            } else message.reply("❌ Usage: `!ipban <IP> <Minutes>`");
+            const ipInput = args[1]; // Comma separated IPs
+            const mins = parseInt(args[2]);
+
+            if (ipInput && !isNaN(mins)) {
+                const ipList = ipInput.split(',').map(i => i.trim());
+                const expiry = Date.now() + (mins * 60000);
+                const allSockets = await io.fetchSockets();
+
+                ipList.forEach(ip => {
+                    if (ip) {
+                        bannedIPs[ip] = expiry;
+                        allSockets.forEach(s => { if (getIP(s) === ip) s.disconnect(); });
+                    }
+                });
+
+                message.reply(`🚫 **Kiko Guard:** Total **${ipList.length}** IPs banned for **${mins} mins**.`);
+            } else message.reply("❌ Use: `!ipban 1.1.1.1,2.2.2.2 <Minutes>`");
             return;
         }
+
+        // MULTIPLE UNBAN
         if (command.startsWith('!ipunban')) {
-            delete bannedIPs[args[1]];
-            return message.reply(`✅ IP \`${args[1]}\` unbanned.`);
+            const ipInput = args[1];
+            if (ipInput) {
+                const ipList = ipInput.split(',').map(i => i.trim());
+                ipList.forEach(ip => delete bannedIPs[ip]);
+                return message.reply(`✅ **Kiko Guard:** **${ipList.length}** IPs unbanned.`);
+            }
         }
+
         if (command === '!banlist') {
             const list = Object.keys(bannedIPs).filter(i => bannedIPs[i] > Date.now());
             return message.reply(list.length > 0 ? `📜 **Banned IPs:**\n${list.join('\n')}` : "📝 No bans.");
@@ -128,7 +146,7 @@ client.on('messageCreate', async (message) => {
             if (!target) return message.reply("❌ Use: `!findip <username>`");
             const found = Object.values(users).find(u => u.name.toLowerCase() === target.toLowerCase());
             if (found) {
-                return message.reply(`🎯 **User Found:** \`${found.name}\`\n📍 **IP:** \`${found.ip}\`\n🔨 Ban in admin channel: \`!ipban ${found.ip} 20\``);
+                return message.reply(`🎯 **User Found:** \`${found.name}\`\n📍 **IP:** \`${found.ip}\`\n🔨 Ban: \`!ipban ${found.ip} 20\``);
             }
             return message.reply(`🤷‍♂️ **${target}** online nahi hai.`);
         }
