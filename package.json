@@ -7,13 +7,16 @@
   },
   "dependencies": {
     "compression": "^1.8.1",
-    "express": "^4.21.2",
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.3.1",
+    "express": "^4.22.1",
     "helmet": "^8.1.0",
     "node-cron": "^4.2.1",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.3"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "npm install npm install express npm install socket.io npm install helmet compression npm install node-cron npm install node server.js",
+  "type": "commonjs"
 }
