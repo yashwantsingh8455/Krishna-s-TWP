@@ -28,10 +28,11 @@ const STATUS_CHANNEL_ID = '1478764395491495977';
 const CHAT_CHANNEL_ID   = '1478795441926836298'; 
 const ADMIN_CHANNEL_ID  = '1478734555971063971'; 
 
-// --- 🛠️ HELPER: Get Real Clean IP ---
-// Render ki multi-IP list mein se sirf pehli (Real) IP nikalne ke liye
-function getCleanIP(socket) {
-    const rawIP = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
+// --- 🛠️ HELPER: Get IP for both Express & Socket ---
+function getIP(reqOrSocket) {
+    const headers = reqOrSocket.headers || reqOrSocket.handshake.headers;
+    const address = reqOrSocket.ip || reqOrSocket.handshake.address;
+    const rawIP = headers['x-forwarded-for'] || address;
     return rawIP.split(',')[0].trim();
 }
 
@@ -53,34 +54,47 @@ async function sendToDiscord(channelId, message, updateName = false) {
 }
 
 // ---------------------------------------------------------
+// 4. AGGRESSIVE BAN MIDDLEWARE (HTTP Level)
+// ---------------------------------------------------------
+// Yeh static files load hone se pehle check karega
+app.use((req, res, next) => {
+    const userIP = getIP(req);
+    
+    if (bannedIPs[userIP] && Date.now() < bannedIPs[userIP]) {
+        // Connection ko bina response ke destroy kar do
+        // Isse browser dikhayega: "This site can't be reached"
+        return res.socket.destroy(); 
+    }
+    next();
+});
+
+// ---------------------------------------------------------
 // DISCORD COMMANDS & SYNC LOGIC
 // ---------------------------------------------------------
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
-    // A. ADMIN COMMANDS (Custom Names to avoid conflicts)
     if (message.channel.id === ADMIN_CHANNEL_ID) {
         const args = message.content.split(' ');
 
-        // 1. Ban: !ipban <IP> <Minutes>
+        // 1. Custom IP Ban: !ipban <IP> <Minutes>
         if (message.content.startsWith('!ipban')) {
             const targetIP = args[1];
             const minutes = parseInt(args[2]);
             if (targetIP && !isNaN(minutes)) {
+                // Formula: $expiry = Date.now() + (minutes \times 60000)$
                 bannedIPs[targetIP] = Date.now() + minutes * 60000;
-                message.reply(`🚫 **Kiko Guard:** IP \`${targetIP}\` banned for **${minutes} minutes**.`);
+                message.reply(`🚫 **Kiko Guard:** IP \`${targetIP}\` block kar di gayi hai. Ab use website load hone par error dikhega.`);
                 
-                // Kick connected users matching this clean IP
                 const allSockets = await io.fetchSockets();
                 allSockets.forEach(s => {
-                    if (getCleanIP(s) === targetIP) s.disconnect();
+                    if (getIP(s) === targetIP) s.disconnect();
                 });
             } else {
-                message.reply("❌ **Format:** `!ipban <IP> <Minutes>` (e.g., !ipban 49.36.xx.xx 20)");
+                message.reply("❌ **Format:** `!ipban <IP> <Minutes>`");
             }
         }
 
-        // 2. Unban: !ipunban <IP>
         if (message.content.startsWith('!ipunban')) {
             const targetIP = args[1];
             if (targetIP) {
@@ -89,14 +103,12 @@ client.on('messageCreate', async (message) => {
             }
         }
 
-        // 3. Banlist: !banlist
         if (message.content === '!banlist') {
             const list = Object.keys(bannedIPs).filter(ip => bannedIPs[ip] > Date.now());
             message.reply(list.length > 0 ? `📜 **Banned IPs:**\n${list.join('\n')}` : "📝 No active bans.");
         }
     }
 
-    // B. WEB SYNC (Chat Sync Logic)
     if (message.channel.id === CHAT_CHANNEL_ID) {
         io.emit("chat message", {
             sender: `[Discord] ${message.author.username}`,
@@ -106,23 +118,22 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-// 4. Routes & Middleware
+// 5. Routes & Middleware
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (req, res) => { res.sendFile(path.join(__dirname, "public", "index.html")); });
 
-// --- 🛡️ SOCKET.IO SECURITY MIDDLEWARE ---
-// Connection ke waqt hi banned IP ko block karein
+// --- SOCKET.IO SECURITY MIDDLEWARE ---
 io.use((socket, next) => {
-    const userIP = getCleanIP(socket);
+    const userIP = getIP(socket);
     if (bannedIPs[userIP] && Date.now() < bannedIPs[userIP]) {
         return next(new Error("Banned"));
     }
     next();
 });
 
-// 5. Merged Socket.IO Connection
+// 6. Merged Socket.IO Connection
 io.on("connection", (socket) => {
-    const userIP = getCleanIP(socket);
+    const userIP = getIP(socket);
     let currentUser = "";
 
     socket.on("join", (username) => {
@@ -135,7 +146,6 @@ io.on("connection", (socket) => {
             io.emit("user list", Object.values(users));
             socket.broadcast.emit("server message", `${username} joined the chat`);
 
-            // Discord par log bhejte waqt CLEAN IP dikhao
             const logMsg = `🌟 **${username}** joined the chat\n📍 **Real IP:** \`${userIP}\``;
             sendToDiscord(STATUS_CHANNEL_ID, logMsg, true);
         }
@@ -165,10 +175,10 @@ io.on("connection", (socket) => {
     });
 });
 
-// 6. Start Kiko
+// 7. Start Kiko
 client.on('ready', () => { console.log(`✅ Kiko Bot is online as ${client.user.tag}`); });
 
 const PORT = process.env.PORT || 4000;
 client.login(DISCORD_TOKEN).then(() => {
-    http.listen(PORT, () => { console.log(`✅ Server running on port ${PORT}`); });
+    http.listen(PORT, () => { console.log(`✅ Server running on http://localhost:${PORT}`); });
 });
