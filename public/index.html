@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#3f51b5">
+  <title>TalktoPeoples</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: #050A30;
+    }
+
+    #login,
+    #chat {
+      height: 100vh;
+      display: none;
+      flex-direction: column;
+    }
+
+    #login {
+      justify-content: center;
+      align-items: center;
+      background: #282c34;
+      color: #fff;
+    }
+
+    .login-box input,
+    .login-box button {
+      padding: 10px;
+      width: 220px;
+      margin-top: 8px;
+      font-size: 15px;
+    }
+
+    #chatContainer {
+      display: flex;
+      flex: 1;
+    }
+
+    .chatHeader {
+      background: #3f51b5;
+      /* Your original color */
+      color: white;
+      padding: 4px 11px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-icon {
+      width: 36px;
+      height: 36px;
+      fill: #fff;
+      transition: transform 0.3s;
+    }
+
+    .chat-icon:hover {
+      transform: rotate(-15deg) scale(1.2);
+    }
+
+    .logo-text {
+      font-weight: bold;
+      font-size: 20px;
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .logout-btn {
+      background: #f44336;
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #chatWindow {
+      scroll-behavior: smooth;
+    }
+
+
+
+
+    /* Firefox scrollbar */
+    #chatWindow {
+      scrollbar-width: thin;
+      scrollbar-color: #888 #1e3a8a;
+    }
+
+
+
+
+    /* Scrollbar Styling for WebKit browsers (Chrome, Edge, Safari) */
+    #chatWindow::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #chatWindow::-webkit-scrollbar-track {
+      background: #1e3a8a;
+      border-radius: 4px;
+    }
+
+    #chatWindow::-webkit-scrollbar-thumb {
+      background: #1e3a8a;
+      border-radius: 4px;
+    }
+
+    #chatWindow::-webkit-scrollbar-thumb:hover {
+      background: #1e3a8a;
+    }
+
+
+
+
+
+    #chatArea {
+      display: flex;
+      width: 100%;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    #chatWindow {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    #inputSection {
+      flex-shrink: 0;
+      display: flex;
+      padding: 10px;
+      background: #f0f0f0;
+      align-items: center;
+    }
+
+    #input {
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      background: white;
+      resize: none;
+      width: 90%;
+      max-height: 120px;
+    }
+
+    #send {
+      padding: 6px 14px;
+      margin-top: 5px;
+      height: 38px;
+      align-self: flex-end;
+      border: none;
+      background: #3f51b5;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .message-container {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .message {
+      padding: 10px 14px;
+      border-radius: 6px;
+      max-width: 80%;
+      font-family: "Lato", sans-serif;
+      font-weight: 600;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .me {
+      background: #dcf8c6;
+      align-self: flex-end;
+    }
+
+    .other {
+      background: white;
+      align-self: flex-start;
+    }
+
+    .username-label {
+      font-size: 17px;
+      margin-bottom: 4px;
+      color: #333;
+      text-decoration: underline;
+      font-style: italic;
+      cursor: pointer;
+    }
+
+    .reply-block {
+      font-size: 13px;
+      color: #555;
+      padding: 5px 10px;
+      background: #f1f0f0;
+      border-left: 3px solid #999;
+      margin-bottom: 5px;
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      font-size: 21px;
+      font-weight: bold;
+      cursor: pointer;
+      position: absolute;
+      right: 328px;
+      top: 7px;
+      z-index: 2;
+      display: block;
+      /* Always visible */
+    }
+
+    .message-container:hover .menu-btn {
+      display: block;
+    }
+
+    .message-menu {
+      display: none;
+      position: absolute;
+      right: 5px;
+      top: 25px;
+      background: white;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+      flex-direction: column;
+      min-width: 100px;
+    }
+
+    .message-menu button {
+      padding: 6px 10px;
+      border: none;
+      background: white;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    #replyPreview {
+      display: none;
+      background: #fff4e5;
+      padding: 6px 10px;
+      border-left: 4px solid #ffa726;
+      margin-bottom: 8px;
+      font-size: 14px;
+      position: relative;
+    }
+
+    #replyPreview .close-reply {
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #888;
+    }
+
+    #userList {
+      width: 200px;
+      background: #f7f7f7;
+      border-left: 1px solid #ccc;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    .user-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #3f51b5;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .mention {
+      color: #3f51b5;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+
+
+    #emojiPicker {
+      position: absolute;
+      left: 0;
+      width: 210px;
+      max-height: 180px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      z-index: 100;
+      display: flex;
+      margin-left: -45px;
+      flex-wrap: wrap;
+      gap: 6px;
+      /* spacing between emojis */
+      overflow-y: auto;
+    }
+
+    /* Toggle Button (emoji icon to open picker) */
+    #emojiToggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 22px;
+    }
+
+    /* Emoji Buttons inside the picker */
+    #emojiPicker button {
+      font-size: 20px;
+      width: 32px;
+      height: 32px;
+      text-align: center;
+      line-height: 32px;
+      padding: 0;
+      border: none;
+      background-color: #d10000;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #emojiPicker button:hover {
+      background-color: #333;
+    }
+
+    .emoji-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+
+    /* Close button inside the emoji picker */
+    .emoji-close-btn {
+      background-color: #d10000;
+      color: #fff;
+      border: none;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    #mobileNavbar {
+      background: #3f51b5;
+      padding: 10px;
+      justify-content: space-around;
+      align-items: center;
+      color: white;
+      font-size: 18px;
+      display: none;
+    }
+
+    #mobileNavbar button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    #userOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      z-index: 9999;
+      flex-direction: column;
+    }
+
+    .overlay-header {
+      background: #3f51b5;
+      color: white;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 18px;
+    }
+
+    .overlay-header button {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .overlay-body {
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+
+
+
+
+
+
+
+
+    /* MEDIA QUERIES FORM HERE */
+    @media (max-width: 768px) {
+      body {
+        font-size: 16px;
+        /* background: linear-gradient(135deg, #667eea, #764ba2); */
+        overflow: hidden;
+      }
+
+      #chatContainer {
+        flex-direction: column;
+      }
+
+      .overlay-body {
+        padding: 15px;
+        margin-top: 40px;
+        overflow-y: auto;
+      }
+
+      #userList {
+        display: none;
+        margin-top: 50px;
+      }
+
+      /* #chatArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 60px;
+  } */
+
+      .chatHeader {
+        font-size: 18px;
+        padding: 12px;
+      }
+
+
+
+      #mobileNavbar button {
+        background: none;
+        border: none;
+        color: white;
+        width: 250px;
+        height: 30px;
+        font-size: 18px;
+        cursor: pointer;
+      }
+
+      /* Chat container full height */
+      #chatArea {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      /* Scrollable chat window */
+      #chatWindow {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+      }
+
+      /* Fixed input section at bottom */
+      #inputSection {
+        display: flex;
+        padding: 10px;
+        background: #f0f0f0;
+        align-items: center;
+
+        margin-bottom: 100px;
+      }
+
+
+
+
+      #input {
+        flex: 1;
+        font-size: 16px;
+        padding: 12px 16px;
+        border-radius: 20px;
+        margin: 0;
+      }
+
+      #send {
+        font-size: 16px;
+        height: 42px;
+        width: 80px;
+        margin: 0;
+        border-radius: 8px;
+      }
+
+      .message {
+        font-size: 15px;
+        padding: 12px 16px;
+        border-radius: 16px;
+        max-width: 90%;
+      }
+
+      .username-label {
+        font-size: 16px;
+      }
+
+      .message-menu {
+        min-width: 120px;
+      }
+
+      .login-box input,
+      .login-box button {
+        width: 90vw;
+        max-width: 300px;
+        font-size: 16px;
+        padding: 12px;
+      }
+
+      #mobileNavbar {
+        display: flex;
+        bottom: 0;
+        width: 100%;
+        font-size: 20px;
+        z-index: 10000;
+      }
+
+      #emojiPicker {
+        position: absolute;
+        width: 210px;
+        max-height: 300px;
+        visibility: hidden;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+        display: flex;
+        margin-left: -160px;
+        flex-wrap: wrap;
+        gap: 6px;
+        /* spacing between emojis */
+        overflow-y: auto;
+      }
+
+      /* Toggle Button (emoji icon to open picker) */
+      #emojiToggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 22px;
+      }
+
+      /* Emoji Buttons inside the picker */
+      #emojiPicker button {
+        font-size: 20px;
+        width: 32px;
+        height: 32px;
+        text-align: center;
+        line-height: 32px;
+        padding: 0;
+        border: none;
+        background-color: #d10000;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      #emojiPicker button:hover {
+        background-color: #333;
+      }
+
+      .emoji-wrapper {
+        position: relative;
+        display: inline-block;
+      }
+
+
+      /* Close button inside the emoji picker */
+      .emoji-close-btn {
+        background-color: #d10000;
+        color: #fff;
+        border: none;
+        font-size: 16px;
+        font-weight: bold;
+        padding: 6px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-bottom: 8px;
+        display: inline-block;
+      }
+
+      #replyPreview {
+        font-size: 15px;
+        padding: 10px;
+      }
+
+
+
+      .menu-btn {
+        background: none;
+        border: none;
+        font-size: 21px;
+        font-weight: bold;
+        cursor: pointer;
+        position: absolute;
+        right: 28px;
+        top: 7px;
+        z-index: 2;
+        display: block;
+        /* Always visible */
+      }
+
+
+
+
+      #replyPreview {
+        position: relative;
+        margin-top: -10px;
+        margin-bottom: 5px;
+      }
+    }
+
+
+
+
+    #customMenu {
+      position: absolute;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 1000;
+      width: 120px;
+      border-radius: 5px;
+    }
+
+    #customMenu ul {
+      list-style: none;
+      padding: 5px 0;
+      margin: 0;
+    }
+
+    #customMenu li {
+      padding: 6px 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    #customMenu li:hover {
+      background-color: #e0e0e0;
+    }
+
+
+
+
+
+    .divider {
+      display: inline-block;
+      width: 1px;
+      /* line ki motai */
+      height: 20px;
+      /* line ki lambai */
+      background-color: black;
+      /* line ka color */
+      margin: 0 8px;
+      /* dono side gap */
+    }
+
+
+
+
+
+
+
+
+
+
+    /* Nayi class jo icon-only buttons ke liye hai */
+    .compact-icon {
+      width: 34px;
+      /* Thoda bada kiya */
+      height: 34px;
+      /* Thoda bada kiya */
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 16px;
+      /* Icon ka size Font Awesome ke liye */
+      border-radius: 50%;
+    }
+
+    /* Logout button ke icon ko thoda style karein */
+    .logout-btn i {
+      margin-right: 5px;
+    }
+
+    /* Emoji Toggle Button ko adjust karein */
+    #emojiToggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      /* Icon size */
+      padding: 8px;
+      line-height: 1;
+      color: #555;
+      /* Default color */
+    }
+
+    /* Send button icon */
+    #send i {
+      margin-left: 5px;
+      /* Icon aur text ke beech thoda space */
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="login">
+    <div class="login-box">
+      <h2>TalktoPeoples</h2>
+      <input type="text" id="username" placeholder="Enter your name" />
+      <button id="loginBtn">Join Chat</button>
+      <p id="loginError" style="color: #ff6b6b;"></p>
+    </div>
+  </div>
+
+
+
+
+
+
+
+  <div id="chat">
+    <div id="chatContainer">
+
+      <div id="chatArea">
+
+
+
+
+
+        <div id="adminPanelModal" style="
+    display: none; 
+    position: fixed; 
+    z-index: 10000; 
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.6); 
+    justify-content: center;
+    align-items: center;">
+
+          <div style="
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 400px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+
+            <span onclick="closeAdminPanel()"
+              style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+
+            <h2>Admin Actions 👑</h2>
+            <p>Ban/Unban users by Username.</p>
+
+            <div style="margin-bottom: 15px;">
+              <label for="targetUsername">Target Username:</label>
+              <input type="text" id="targetUsername" placeholder="Enter Username to Ban/Unban"
+                style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+              <label for="banReason">Ban Reason (Optional):</label>
+              <input type="text" id="banReason" placeholder="e.g., Spamming, Violation"
+                style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
+
+            <button onclick="handleBanAction()"
+              style="background-color: #f44336; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+              <i class="fa-solid fa-ban"></i> Ban User
+            </button>
+
+            <button onclick="handleUnbanAction()"
+              style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer;">
+              <i class="fa-solid fa-check"></i> Unban User
+            </button>
+
+            <p id="adminStatusMessage" style="color: #3f51b5; margin-top: 15px;"></p>
+          </div>
+        </div>
+
+
+
+
+
+        <!-- Logo -->
+        <div class="chatHeader">
+          <div class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="chat-icon">
+              <path fill="#ffffff"
+                d="M20 2H4C2.9 2 2 2.9 2 4v14c0 1.1 0.9 2 2 2h14l4 4V4c0-1.1-0.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+            </svg>
+            <span class="logo-text">TalktoPeoples</span>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button onclick="openAdminPanel()" title="Admin Panel"
+              style="background-color: #ffa500; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+              <i class="fa-solid fa-user-shield"></i> Admin
+            </button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+          </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+        <!-- Mobile Navbar -->
+        <div id="mobileNavbar">
+          <button class="header-action-btn compact-icon" onclick="toggleUsers()" title="Online Users">
+            <i class="fa-solid fa-users"></i> </button>
+
+          <button class="header-action-btn compact-icon" onclick="alert('Settings feature coming soon!')"
+            title="Settings">
+            <i class="fa-solid fa-gear"></i> </button>
+
+          <button class="logout-btn" onclick="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout </button>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <!-- <div class="chatRooms">
+  <button onclick="window.open('Rooms/WorldChat.html', '_blank')">
+    <b>World Chat🌐🌍</b>
+  </button>
+  
+  <button onclick="window.open('Rooms/InternationalChatRoom.html', '_blank')">
+    <b>International Chat Room 💬</b>
+  </button>
+  
+  <button onclick="window.open('Rooms/ChenniKhenni.html', '_blank')">
+    Chenni Khenni 🍬😂
+  </button>
+  
+  <button onclick="window.open('Rooms/MemesOnly.html', '_blank')">
+    Memes Only 🤣📸
+  </button>
+  
+  <button onclick="window.open('Rooms/NimbuMirchi.html', '_blank')">
+    Nimbu Mirchi 🌶🍋
+  </button>
+</div> -->
+
+
+
+
+
+
+        <div id="chatWindow"></div>
+        <div id="replyPreview">
+          <span id="replyText"></span>
+          <span class="close-reply" onclick="cancelReply()">×</span>
+        </div>
+        <div id="inputSection">
+
+          <textarea id="input" placeholder="Type a message..." rows="1"></textarea>
+
+          <!-- Send & Emoji buttons container -->
+          <div class="sendemojiearea">
+            <button id="emojiToggle" style="border: none; font-size: 22px; cursor: pointer;">😀</button>
+            <button id="send">Send</button>
+
+            <!-- Emoji Picker -->
+            <div id="emojiPicker">
+              <button id="closeEmojiPicker" class="emoji-close-btn">×</button>
+            </div>
+
+
+          </div>
+
+
+
+        </div>
+      </div>
+
+      <div id="userList" style="position:relative; padding:10px;">
+
+
+        <!-- <div style="margin-bottom:8px;">
+    <button onclick="toggleDropdown()" 
+      style="padding:5px 12px; background:#3f51b5; color:white; border:none; border-radius:4px; cursor:pointer; font-size:13px; font-weight:500;">
+      🌐 Rooms
+    </button>
+  </div> -->
+
+
+        <!-- <div id="roomsDropdown" 
+    style="display:none; position:absolute; top:40px; left:10px; background:white; width:170px; max-height:180px; overflow-y:auto; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.25); z-index:1000; padding:6px;">
+
+
+    <button onclick="window.location.href='Rooms/room1.html'" 
+      style="display:block; width:100%; margin:3px 0; padding:6px; border:none; border-radius:6px; background:#f7f7f7; cursor:pointer; text-align:left; font-size:13px;">
+      <b>World Chat🌐🌍</b>
+    </button>
+
+    <button onclick="window.location.href='Rooms/room2.html'" 
+      style="display:block; width:100%; margin:3px 0; padding:6px; border:none; border-radius:6px; background:#f7f7f7; cursor:pointer; text-align:left; font-size:13px;">
+      Nimbu Mirchi 🌶🍋
+    </button>
+
+    <button onclick="window.location.href='Rooms/room3.html'" 
+      style="display:block; width:100%; margin:3px 0; padding:6px; border:none; border-radius:6px; background:#f7f7f7; cursor:pointer; text-align:left; font-size:13px;">
+      Chenni Khenni 🍬😂
+    </button>
+
+    <button onclick="window.location.href='Rooms/room4.html'" 
+      style="display:block; width:100%; margin:3px 0; padding:6px; border:none; border-radius:6px; background:#f7f7f7; cursor:pointer; text-align:left; font-size:13px;">
+      Memes Only 🤣📸
+    </button>
+  </div> -->
+
+        <h4 style="margin-top:10px;">Users :-</h4>
+        <div id="users"></div>
+      </div>
+
+      <audio id="notifSound" src="https://cdn.glitch.global/TalktoPeoples/sound.mp3?v=1234567890"
+        preload="auto"></audio>
+
+
+
+
+      <!-- User Overlay Modal -->
+      <div id="userOverlay">
+        <div class="overlay-header">
+          <span>Online Users</span>
+          <button onclick="closeUserOverlay()">×</button>
+        </div>
+        <div class="overlay-body" id="overlayUsers"></div>
+      </div>
+
+
+
+
+
+      <div id="customMenu">
+        <ul>
+          <li onclick="location.reload()">🔄 Refresh</li>
+          <li onclick="history.back()">⬅️ Back</li>
+          <li onclick="history.forward()">➡️ Forward</li>
+        </ul>
+      </div>
+
+
+
+
+
+      <script src="/socket.io/socket.io.js"></script>
+      <script>
+        const socket = io();
+        const login = document.getElementById('login');
+        const chat = document.getElementById('chat');
+        const usernameInput = document.getElementById('username');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const chatWindow = document.getElementById('chatWindow');
+        const input = document.getElementById('input');
+        const sendBtn = document.getElementById('send');
+        const replyPreview = document.getElementById('replyPreview');
+        const replyText = document.getElementById('replyText');
+        const usersDiv = document.getElementById('users');
+        const emojiBtn = document.getElementById('emojiToggle');
+        const emojiPicker = document.getElementById('emojiPicker');
+
+
+        function autoScroll() {
+          const cw = document.getElementById('chatWindow');
+          cw.scrollTop = cw.scrollHeight;
+        }
+
+        // After appendMessage(data...)
+        autoScroll();
+
+
+        let currentUser = '';
+        let replyData = null;
+
+        const savedName = localStorage.getItem('username');
+        if (savedName) {
+          currentUser = savedName;
+          socket.emit('join', currentUser);
+        } else {
+          login.style.display = 'flex';
+        }
+
+        loginBtn.onclick = () => {
+          const name = usernameInput.value.trim();
+          if (!name) return;
+
+          // Unlock audio
+          const notifSound = document.getElementById("notifSound");
+          notifSound.play().then(() => notifSound.pause()).catch(() => { });
+
+          currentUser = name;
+          socket.emit('join', name);
+        };
+
+
+
+
+
+        if (document.hidden) {
+          document.title = '🔔 New message!';
+          setTimeout(() => { document.title = 'TalktoPeoples'; }, 3000);
+        }
+
+
+
+
+
+
+        socket.on('duplicate', () => {
+          loginError.textContent = '❌ Username already taken. Try another.';
+        });
+
+        // index.html JS
+        socket.on('joined', () => {
+          login.style.display = 'none';
+          chat.style.display = 'flex';
+          localStorage.setItem('username', currentUser); // <-- Ensure this runs!
+        });
+
+        sendBtn.onclick = sendMessage;
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+          }
+        });
+
+        function sendMessage() {
+          const message = input.value.trim();
+          if (!message) return;
+          const data = { sender: currentUser, message, replyTo: replyData };
+          socket.emit('chat message', data);
+          appendMessage(data, true);
+          input.value = '';
+          resizeInput();
+          cancelReply();
+        }
+
+        // index.html JS file ke andar
+        socket.on('chat message', data => {
+          // Yahan ab koi filter nahi hai, kyunki server sirf dusre users ko bhej raha hai
+          appendMessage(data, false);
+
+          // Play sound
+          const sound = document.getElementById("notifSound");
+          if (sound) {
+            sound.currentTime = 0;
+            sound.play().catch(err => {
+              console.warn("Audio play blocked", err);
+            });
+          }
+        });
+
+
+
+
+
+        function appendMessage(data, isMe) {
+          const container = document.createElement('div');
+          container.className = 'message-container';
+
+          const msgDiv = document.createElement('div');
+          msgDiv.className = `message ${isMe ? 'me' : 'other'}`;
+
+          if (!isMe) {
+            const label = document.createElement('div');
+            label.className = 'username-label';
+            label.textContent = data.sender;
+            label.onclick = () => insertMention(data.sender);
+            msgDiv.appendChild(label);
+          }
+
+          if (data.replyTo) {
+            const replyBlock = document.createElement('div');
+            replyBlock.className = 'reply-block';
+            replyBlock.textContent = `${data.replyTo.sender}: ${data.replyTo.message}`;
+            msgDiv.appendChild(replyBlock);
+          }
+
+          const messageText = document.createElement('div');
+          const formatted = data.message.replace(/@([^@:]+):/g, (_, name) => {
+            return `<span class="mention" data-user="${name}">@${name}:</span>`;
+          });
+          messageText.innerHTML = formatted;
+          msgDiv.appendChild(messageText);
+
+          const menuBtn = document.createElement('button');
+          menuBtn.className = 'menu-btn';
+          menuBtn.textContent = '⋮';
+
+          const menu = document.createElement('div');
+          menu.className = 'message-menu';
+
+          const replyBtn = document.createElement('button');
+          replyBtn.textContent = 'Reply';
+          replyBtn.onclick = () => {
+            setReply(data.sender, data.message);
+            menu.style.display = 'none';
+          };
+          menu.appendChild(replyBtn);
+
+          if (isMe) {
+            const delBtn = document.createElement('button');
+            delBtn.textContent = 'Delete';
+            delBtn.onclick = () => container.remove();
+            menu.appendChild(delBtn);
+          }
+
+          menuBtn.onclick = (e) => {
+            e.stopPropagation();
+            document.querySelectorAll('.message-menu').forEach(m => m.style.display = 'none');
+            menu.style.display = 'flex';
+          };
+
+          document.addEventListener('click', () => {
+            menu.style.display = 'none';
+          });
+
+          container.appendChild(msgDiv);
+          container.appendChild(menuBtn);
+          container.appendChild(menu);
+          chatWindow.appendChild(container);
+          chatWindow.scrollTop = chatWindow.scrollHeight;
+
+          setTimeout(() => {
+            messageText.querySelectorAll('.mention').forEach(m => {
+              m.onclick = () => insertMention(m.dataset.user);
+            });
+          }, 0);
+        }
+
+        function setReply(sender, message) {
+          replyData = { sender, message };
+          replyText.textContent = `Replying to ${sender}: ${message}`;
+          replyPreview.style.display = 'block';
+        }
+
+        function cancelReply() {
+          replyData = null;
+          replyPreview.style.display = 'none';
+          replyText.textContent = '';
+        }
+
+        function resizeInput() {
+          input.style.height = 'auto';
+          input.style.height = input.scrollHeight + 'px';
+        }
+
+        input.addEventListener('input', resizeInput);
+
+        function insertMention(name) {
+          const mention = `@${name}: `;
+          if (!input.value.includes(mention)) {
+            input.value += mention;
+            input.focus();
+            resizeInput();
+          }
+        }
+
+        function logout() {
+          localStorage.removeItem('username');
+          location.reload();
+        }
+
+        socket.on('user list', (users) => {
+          usersDiv.innerHTML = '';
+          users.forEach(name => {
+            const userItem = document.createElement('div');
+            userItem.className = 'user-item';
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.textContent = name.charAt(0).toUpperCase();
+            const userName = document.createElement('div');
+            userName.className = 'user-name';
+            userName.textContent = name;
+            userItem.appendChild(avatar);
+            userItem.appendChild(userName);
+            usersDiv.appendChild(userItem);
+          });
+        });
+
+        // Emoji list
+        const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '🤗', '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '🥱', '😴', '😌', '😜', '🤪', '😝', '🤑', '🤗', '😎', '🤓', '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👻', '👽', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', , '💌', '💘', '💝', '💖', '💗', '💓', '💞', '💕', '💟', '❣️', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💯', '🔥', '🎉', '🥳', '✨', '🌟', '👍', '👎', '👏', '🙌', '🙏', '🫶']
+
+
+          ;
+
+        // Populate emoji picker
+        emojis.forEach(emoji => {
+          const btn = document.createElement('button');
+          btn.textContent = emoji;
+          btn.style.fontSize = '20px';
+          btn.style.padding = '4px 6px';
+          btn.style.margin = '4px';
+          btn.style.border = 'none';
+          btn.style.background = 'none';
+          btn.style.cursor = 'pointer';
+
+          btn.onclick = () => {
+            insertAtCursor(input, emoji);
+            emojiPicker.style.display = 'none'; // 👈 Hides picker immediately
+          };
+
+          emojiPicker.appendChild(btn);
+        });
+
+        // Show emoji picker ABOVE the button
+        emojiBtn.onclick = (e) => {
+          e.stopPropagation();
+
+          emojiPicker.style.display = 'flex';
+          emojiPicker.style.visibility = 'hidden';
+
+          requestAnimationFrame(() => {
+            const sendRect = sendBtn.getBoundingClientRect();
+            const pickerHeight = emojiPicker.offsetHeight;
+
+            // Position emoji picker directly above the send button
+            emojiPicker.style.top = `${sendRect.top + window.scrollY - pickerHeight - 8}px`;
+            emojiPicker.style.left = `${sendRect.left + window.scrollX}px`;
+            emojiPicker.style.visibility = 'visible';
+          });
+        };
+
+
+        // Hide picker on outside click
+        document.addEventListener('click', () => {
+          emojiPicker.style.display = 'none';
+        });
+
+
+
+
+
+        const customMenu = document.getElementById("customMenu");
+
+        // // Show custom menu on right click
+        // document.addEventListener("contextmenu", function (e) {
+        //   e.preventDefault();
+        //   customMenu.style.top = `${e.pageY}px`;
+        //   customMenu.style.left = `${e.pageX}px`;
+        //   customMenu.style.display = "block";
+        // });
+
+        // Hide menu on click elsewhere
+        document.addEventListener("click", function () {
+          customMenu.style.display = "none";
+        });
+
+        // Optional: hide on Escape key
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            customMenu.style.display = "none";
+          }
+        });
+
+
+
+
+
+
+        // Insert emoji at cursor
+        function insertAtCursor(textarea, emoji) {
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const textBefore = textarea.value.substring(0, start);
+          const textAfter = textarea.value.substring(end);
+
+          textarea.value = textBefore + emoji + textAfter;
+          textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+          textarea.focus();
+          resizeInput();
+        }
+        // Hide picker on outside click
+        document.addEventListener('click', () => {
+          emojiPicker.style.display = 'none';
+        });
+        // Close button inside picker
+        document.getElementById('closeEmojiPicker').onclick = (e) => {
+          e.stopPropagation();
+          emojiPicker.style.display = 'none';
+        };
+
+        function toggleUsers() {
+          const overlay = document.getElementById('userOverlay');
+          const overlayUsers = document.getElementById('overlayUsers');
+
+          // Copy current user list
+          overlayUsers.innerHTML = usersDiv.innerHTML;
+          overlay.style.display = 'flex';
+        }
+
+        function closeUserOverlay() {
+          document.getElementById('userOverlay').style.display = 'none';
+        }
+        function insertAtCursor(textarea, emoji) {
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const textBefore = textarea.value.substring(0, start);
+          const textAfter = textarea.value.substring(end);
+
+          textarea.value = textBefore + emoji + textAfter;
+          textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+          textarea.focus();
+          resizeInput(); // Optional: resize after emoji is added
+        }
+
+
+
+        // // Disable right-click
+        // document.addEventListener("contextmenu", e => e.preventDefault());
+
+        // // Block F12, Ctrl+Shift+I/J/C/U
+        // document.addEventListener("keydown", function(e) {
+        //   if (
+        //     e.key === "F12" || 
+        //     (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) ||
+        //     (e.ctrlKey && e.key.toUpperCase() === "U")
+        //   ) {
+        //     e.preventDefault();
+        //     alert("This action is disabled.");
+        //   }
+        // });
+
+
+        //   setInterval(function() {
+        //   const start = performance.now();
+        //   debugger;
+        //   const end = performance.now();
+        //   if (end - start > 100) {
+        //     window.location.href = "about:blank";
+        //   }
+        // }, 1000);
+
+
+
+        sound.play().then(() => { }).catch(err => console.warn("Autoplay issue", err));
+
+
+
+
+        // Rooms
+        function toggleDropdown() {
+          var dropdown = document.getElementById("roomsDropdown");
+          dropdown.style.display = (dropdown.style.display === "block") ? "none" : "block";
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // GeneralChat.html के <script> टैग के अंदर
+
+        // Admin Token और Flag (यह मानते हुए कि आप एडमिन हैं)
+        const ADMIN_TOKEN = 'Yash@4112005';
+        const IS_ADMIN = true;
+
+        // यह फ़ंक्शन सर्वर को बैन कमांड भेजेगा
+        function sendBanCommand(targetUsername) {
+          // ... कनेक्शन चेक लॉजिक ...
+
+          const reason = prompt(`Enter reason for banning user: ${targetUsername}`);
+
+          if (reason !== null) {
+            const confirmation = confirm(`Are you sure you want to BAN user ${targetUsername}? Reason: ${reason}`);
+
+            if (confirmation) {
+              // यह सर्वर पर 'admin:banUser' इवेंट को ट्रिगर करेगा
+              socket.emit('admin:banUser', {
+                targetUsername: targetUsername,
+                reason: reason,
+                adminToken: ADMIN_TOKEN
+              });
+              console.log(`Ban request sent for username: ${targetUsername}`);
+            }
+          }
+        }
+
+        // जब सर्वर आपको बैन करता है तो यह इवेंट प्राप्त होता है
+        socket.on('banned', (data) => {
+          alert(`YOU HAVE BEEN BANNED: ${data.message}`);
+          // महत्वपूर्ण: यूज़र को लॉगआउट करने के लिए उन्हें किसी और पेज पर भेजें या चैट UI छिपा दें।
+          window.location.href = '/banned.html';
+          // या window.location.reload(); 
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+        // =======================================================
+        // 👑 ADMIN PANEL FUNCTIONS (NEW)
+        // =======================================================
+
+        // 1. ओपन/क्लोज फ़ंक्शंस (Admin Button से कॉल होता है)
+        function openAdminPanel(usernameToBan = '') {
+          if (!adminPanelModal) {
+            console.error("CRITICAL: 'adminPanelModal' element not found.");
+            alert("Admin panel setup error: Modal is missing or ID is incorrect.");
+            return;
+          }
+
+          if (IS_ADMIN) {
+            // अगर usernameToBan पास किया गया है (जैसे यूज़रलिस्ट से), तो इनपुट भरें
+            if (targetUsernameInput) {
+              targetUsernameInput.value = usernameToBan || '';
+            }
+
+            if (banReasonInput) {
+              banReasonInput.value = '';
+            }
+
+            if (adminStatusMessage) {
+              adminStatusMessage.textContent = '';
+            }
+
+            adminPanelModal.style.display = 'flex'; // Modal को दिखाएँ
+          } else {
+            alert("You are not authorized to perform this action.");
+          }
+        }
+
+        function closeAdminPanel() {
+          if (adminPanelModal) {
+            adminPanelModal.style.display = 'none';
+            if (targetUsernameInput) targetUsernameInput.value = '';
+            if (banReasonInput) banReasonInput.value = '';
+            if (adminStatusMessage) adminStatusMessage.textContent = '';
+          }
+        }
+
+        // 2. Ban Action
+        function handleBanAction() {
+          const targetUsername = targetUsernameInput.value.trim();
+          const reason = banReasonInput.value.trim() || 'No reason specified';
+
+          if (!targetUsername) {
+            adminStatusMessage.textContent = '❌ Please enter a username.';
+            return;
+          }
+
+          if (targetUsername === currentUser) {
+            adminStatusMessage.textContent = '❌ You cannot ban yourself.';
+            return;
+          }
+
+          const confirmation = confirm(`Confirm BAN for user: ${targetUsername}? Reason: ${reason}`);
+
+          if (confirmation) {
+            socket.emit('admin:banUser', {
+              targetUsername: targetUsername,
+              reason: reason,
+              adminToken: ADMIN_TOKEN
+            });
+            adminStatusMessage.textContent = `Ban request sent for: ${targetUsername}`;
+          }
+        }
+
+        // 3. Unban Action
+        function handleUnbanAction() {
+          const targetUsername = targetUsernameInput.value.trim();
+
+          if (!targetUsername) {
+            adminStatusMessage.textContent = '❌ Please enter a username.';
+            return;
+          }
+
+          const confirmation = confirm(`Confirm UNBAN for user: ${targetUsername}?`);
+
+          if (confirmation) {
+            socket.emit('admin:unbanUser', {
+              targetUsername: targetUsername,
+              adminToken: ADMIN_TOKEN
+            });
+            adminStatusMessage.textContent = `Unban request sent for: ${targetUsername}`;
+          }
+        }
+
+        // 4. Real-time Status Handling (सर्वर से प्रतिक्रिया)
+        socket.on('banStatus', (data) => {
+          if (adminStatusMessage) {
+            adminStatusMessage.textContent = `✅ Success: User ${data.targetUsername} was ${data.action}.`;
+          }
+          console.log(`Admin Status: ${data.action} for ${data.targetUsername}`);
+        });
+
+        socket.on('error', (data) => {
+          if (adminPanelModal && adminPanelModal.style.display === 'flex' && adminStatusMessage) {
+            adminStatusMessage.textContent = `❌ Error: ${data.message}`;
+          }
+          console.error(`Server Error: ${data.message}`);
+        });
+
+        // 5. अपने आप बैन होने पर
+        socket.on('banned', (data) => {
+          alert(`YOU HAVE BEEN BANNED: ${data.message}`);
+          window.location.reload();
+        });
+
+
+
+
+
+
+
+
+
+
+
+        // =======================================================
+        // 👥 USER LIST UPDATE (Replace your existing 'user list' handler)
+        // =======================================================
+
+        socket.on('user list', (users) => {
+          usersDiv.innerHTML = '';
+
+          users.forEach(name => {
+            const userItem = document.createElement('div');
+            userItem.className = 'user-item';
+            userItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
+
+            const nameContainer = document.createElement('div');
+            nameContainer.style.display = 'flex';
+            nameContainer.style.alignItems = 'center';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.textContent = name.charAt(0).toUpperCase();
+
+            const userName = document.createElement('div');
+            userName.className = 'user-name';
+            userName.textContent = name;
+
+            nameContainer.appendChild(avatar);
+            nameContainer.appendChild(userName);
+            userItem.appendChild(nameContainer);
+
+            // --- REAL-TIME BAN BUTTON (IF ADMIN) ---
+            if (IS_ADMIN && name !== currentUser) {
+              const banBtn = document.createElement('button');
+              banBtn.textContent = 'Ban';
+              banBtn.style.cssText = 'background: #dc2626; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px;';
+
+              // बटन क्लिक होने पर यूज़रनेम के साथ Admin Panel खोलें
+              banBtn.onclick = () => openAdminPanel(name);
+
+              userItem.appendChild(banBtn);
+            }
+
+            usersDiv.appendChild(userItem);
+          });
+          // Overlay यूज़र लिस्ट को भी अपडेट करें (मोबाइल के लिए)
+          document.getElementById('overlayUsers').innerHTML = usersDiv.innerHTML;
+        });
+
+
+
+
+function openAdminPanel(usernameToBan = '') {
+    // ⚠️ यह लाइन जोड़ें
+    console.log("Admin button clicked. Checking IS_ADMIN."); 
+
+    if (!adminPanelModal) {
+        console.error("CRITICAL: 'adminPanelModal' element not found."); 
+        alert("Admin panel setup error: Modal is missing or ID is incorrect.");
+        return;
+    }
+    // ... rest of the code ...
+}
+        
+      </script>
+
+</body>
+
+</html>
