@@ -10,8 +10,9 @@ const { Client, GatewayIntentBits } = require('discord.js');
 // 2. Global Variables
 let users = {}; 
 let messages = {}; 
+let bannedIPs = {}; // { ip: expiry_timestamp }
 
-// 3. Discord Bot Setup
+// 3. Discord Bot Setup (Kiko)
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds, 
@@ -22,13 +23,15 @@ const client = new Client({
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 
-// IDs Setup
-const STATUS_CHANNEL_ID = '1478764395491495977'; // Join/Leave notifications
-const CHAT_CHANNEL_ID = '1478795441926836298';  // Website ↔ Discord Chat Sync
+// CHANNEL IDs SETUP
+const STATUS_CHANNEL_ID = '1478764395491495977'; // Logs & Online Count
+const CHAT_CHANNEL_ID   = '1478795441926836298'; // Website ↔ Discord Chat Sync
+const ADMIN_CHANNEL_ID  = '1478734555971063971'; // Ban/Unban Commands (Private)
 
 // Helper Function: Send Discord Message
 async function sendToDiscord(channelId, message, updateName = false) {
     try {
+        if (!channelId) return;
         const channel = await client.channels.fetch(channelId);
         if (channel) {
             await channel.send(message);
@@ -42,15 +45,52 @@ async function sendToDiscord(channelId, message, updateName = false) {
     }
 }
 
-// Discord to Website Sync
+// ---------------------------------------------------------
+// DISCORD COMMANDS & SYNC LOGIC
+// ---------------------------------------------------------
 client.on('messageCreate', async (message) => {
-    if (message.author.bot || message.channel.id !== CHAT_CHANNEL_ID) return;
+    if (message.author.bot) return;
 
-    io.emit("chat message", {
-        sender: `[Discord] ${message.author.username}`,
-        message: message.content,
-        id: message.id
-    });
+    // A. ADMIN COMMANDS (Sirf Admin Channel mein)
+    if (message.channel.id === ADMIN_CHANNEL_ID) {
+        const args = message.content.split(' ');
+
+        // 1. Ban: !ban <IP> <Minutes>
+        if (message.content.startsWith('!ban')) {
+            const targetIP = args[1];
+            const minutes = parseInt(args[2]);
+            if (targetIP && !isNaN(minutes)) {
+                bannedIPs[targetIP] = Date.now() + minutes * 60000;
+                message.reply(`🚫 **Kiko Guard:** IP \`${targetIP}\` banned for **${minutes} minutes**.`);
+                
+                const allSockets = await io.fetchSockets();
+                allSockets.forEach(s => {
+                    const ip = s.handshake.headers['x-forwarded-for'] || s.handshake.address;
+                    if (ip.includes(targetIP)) s.disconnect();
+                });
+            } else {
+                message.reply("❌ Use: `!ban <IP> <Mins>`");
+            }
+        }
+
+        // 2. Unban: !unban <IP>
+        if (message.content.startsWith('!unban')) {
+            const targetIP = args[1];
+            if (targetIP) {
+                delete bannedIPs[targetIP];
+                message.reply(`✅ **Kiko Guard:** IP \`${targetIP}\` unbanned.`);
+            }
+        }
+    }
+
+    // B. WEB SYNC (Sirf Chat Channel se)
+    if (message.channel.id === CHAT_CHANNEL_ID) {
+        io.emit("chat message", {
+            sender: `[Discord] ${message.author.username}`,
+            message: message.content,
+            id: message.id
+        });
+    }
 });
 
 // 4. Routes & Middleware
@@ -60,12 +100,21 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// 5. Merged Socket.IO Connection (All events go inside here)
+// --- SOCKET.IO SECURITY MIDDLEWARE ---
+io.use((socket, next) => {
+    const userIP = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
+    if (bannedIPs[userIP] && Date.now() < bannedIPs[userIP]) {
+        return next(new Error("Banned"));
+    }
+    next();
+});
+
+// 5. Merged Socket.IO Connection
 io.on("connection", (socket) => {
-    console.log("User connected:", socket.id);
+    const userIP = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
     let currentUser = "";
 
-    // --- User joins ---
+    // JOIN LOGIC with Full IP Logging
     socket.on("join", (username) => {
         if (Object.values(users).includes(username)) {
             socket.emit("duplicate");
@@ -76,63 +125,44 @@ io.on("connection", (socket) => {
             io.emit("user list", Object.values(users));
             socket.broadcast.emit("server message", `${username} joined the chat`);
 
-            // Join message STATUS channel mein jayega
-            sendToDiscord(STATUS_CHANNEL_ID, `🌟 **${username}** is active now in our website`, true);
+            // Detailed Log in Status Channel
+            const logMsg = `🌟 **${username}** joined the chat\n📍 **Full IP Address:** \`${userIP}\``;
+            sendToDiscord(STATUS_CHANNEL_ID, logMsg, true);
         }
     });
 
-    // --- Chat message (Integrated with Reply Sync) ---
+    // CHAT MESSAGE with Reply Support
     socket.on("chat message", (data) => {
         if (currentUser) {
             const messageId = Date.now().toString();
-            
-            // 1. Website par baaki users ko bhejein
-            socket.broadcast.emit("chat message", {
-                ...data,
-                id: messageId,
-                sender: currentUser,
-            });
+            socket.broadcast.emit("chat message", { ...data, id: messageId, sender: currentUser });
 
-            // 2. Discord ke liye format karein (Checking for replies)
             let discordContent = `**${currentUser}**: ${data.message}`;
-
             if (data.replyTo) {
-                // Discord Quote format for replies
+                // Formatting for Discord Quote
                 discordContent = `> *Replying to **${data.replyTo.sender}**: ${data.replyTo.message}*\n${discordContent}`;
             }
-
-            // 3. Discord CHAT channel mein bhejein
             sendToDiscord(CHAT_CHANNEL_ID, discordContent);
 
             messages[messageId] = { text: data.message, userId: socket.id };
         }
     });
 
-    socket.on("chat image", (data) => {
-        io.emit("chat image", { user: currentUser, data });
-    });
-
     socket.on("disconnect", () => {
         if (currentUser) {
-            sendToDiscord(STATUS_CHANNEL_ID, `👋 **${currentUser}** has been left our site`, true);
+            sendToDiscord(STATUS_CHANNEL_ID, `👋 **${currentUser}** left the site (IP: \`${userIP}\`)`, true);
             delete users[socket.id];
             io.emit("user list", Object.values(users));
-            socket.broadcast.emit("server message", `${currentUser} left the chat`);
         }
     });
-
-    // Edit/Delete events should also be placed here
 });
 
-// 6. Discord Ready Event
-client.on('ready', () => {
-    console.log(`✅ Discord Bot logged in as ${client.user.tag}`);
+// 6. Start Kiko
+client.on('ready', () => { 
+    console.log(`✅ Kiko Bot is online as ${client.user.tag}`); 
 });
 
-// 7. Start Server
 const PORT = process.env.PORT || 4000;
 client.login(DISCORD_TOKEN).then(() => {
-    http.listen(PORT, () => {
-        console.log(`✅ Server running on http://localhost:${PORT}`);
-    });
+    http.listen(PORT, () => { console.log(`✅ Server running on http://localhost:${PORT}`); });
 });
