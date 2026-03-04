@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>StrangertoStranger | Fast Admin ⚡</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #050A30; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .admin-card { background: white; color: #333; padding: 30px; border-radius: 15px; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        h2 { text-align: center; color: #3f51b5; margin-top:0; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; color: white; transition: 0.3s; }
+        .ban-btn { background: #f44336; }
+        .ban-btn:hover { background: #d32f2f; }
+        #status { margin-top: 15px; font-weight: bold; text-align: center; font-size: 14px; min-height: 20px; }
+    </style>
+</head>
+<body>
+    <div class="admin-card">
+        <h2>Fast Ban Panel 👑</h2>
+        <p style="font-size: 12px; color: #666; text-align: center;">Enter username to force logout</p>
+        
+        <input type="text" id="targetUser" placeholder="Target Username (Exact Case)">
+        <input type="text" id="reason" placeholder="Reason for ban (Optional)">
+        
+        <button class="btn ban-btn" onclick="kickUser()">🚫 Force Logout & Ban</button>
+        
+        <div id="status"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        
+        function kickUser() {
+            const target = document.getElementById('targetUser').value.trim();
+            const reason = document.getElementById('reason').value.trim();
+            const statusDiv = document.getElementById('status');
+
+            if(!target) {
+                alert("Please enter a username!");
+                return;
+            }
+
+            // Realtime event trigger
+            socket.emit('admin:banUser', {
+                adminToken: 'Yash@4112005', // Token ab code ke andar fix hai
+                targetUsername: target,
+                reason: reason || "Forced logout by admin"
+            });
+
+            statusDiv.innerText = "Kicking " + target + "...";
+            statusDiv.style.color = "#3f51b5";
+            document.getElementById('targetUser').value = '';
+        }
+
+        socket.on('banStatus', (data) => {
+            document.getElementById('status').innerText = `✅ User ${data.targetUsername} has been kicked!`;
+            document.getElementById('status').style.color = "green";
+        });
+    </script>
+</body>
+</html>

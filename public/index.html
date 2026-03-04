@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StrangerToStranger Chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Roboto", sans-serif; }
+        body { background-color: #f4f4f9; color: #333; }
+
+        /* --- Navbar --- */
+        .navbar {
+            background-color: #111;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            border-bottom: 2px solid #3f51b5;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo img { height: 62px; width: auto; margin-left: -20px; vertical-align: middle; }
+
+        .nav-items { display: flex; list-style: none; align-items: center; }
+        .nav-items li { position: relative; }
+        .nav-items li a {
+            color: white; text-decoration: none;
+            margin-left: 20px; padding: 10px 5px; cursor: pointer;
+            font-size: 14px;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #222;
+            min-width: 160px;
+            top: 45px;
+            left: 20px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.5);
+        }
+
+        .dropdown-content.show { display: block; }
+        .dropdown-content a {
+            color: #ccc !important; padding: 12px 16px !important;
+            margin-left: 0 !important; display: block; border-bottom: 1px solid #333;
+        }
+
+        /* --- Sidebar --- */
+        .my-sidebar {
+            height: 100%; width: 0; position: fixed;
+            z-index: 5000; top: 0; right: 0;
+            background-color: #1a1a1a; overflow-x: hidden;
+            transition: 0.3s; padding-top: 60px;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.5);
+        }
+
+        .my-sidebar a {
+            padding: 15px 25px; text-decoration: none;
+            font-size: 18px; color: #ccc; display: block;
+            border-bottom: 1px solid #333;
+        }
+
+        .sidebar-dropdown-container { display: none; background-color: #111; }
+        .sidebar-dropdown-container a { padding-left: 50px; font-size: 16px; border-bottom: 1px solid #222; }
+
+        .open-btn { font-size: 22px; cursor: pointer; display: none; color: white; }
+        .bg-overlay {
+            display: none; position: fixed; width: 100%; height: 100%;
+            top: 0; left: 0; background-color: rgba(0,0,0,0.7); z-index: 4000;
+        }
+
+        /* --- Main Content --- */
+        .main-container { text-align: center; padding: 20px; }
+        
+        .chat-main-btn {
+            display: inline-block; 
+            background-color: #3f51b5; 
+            color: #ffffff; 
+            padding: 10px 25px; 
+            font-size: 15px; 
+            font-weight: bold; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            transition: 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .multiple-rooms {
+            background-color: #337ab7; 
+            padding: 20px; 
+            text-align: center; 
+            max-width: 500px; 
+            margin: 0 auto; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+
+        .rooms-grid {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;
+        }
+
+        /* Individual Button Styling */
+        .room-link {
+            display: inline-flex; 
+            align-items: center; 
+            padding: 6px 10px; 
+            text-decoration: none; 
+            border-radius: 4px; 
+            font-weight: normal; 
+            font-size: 12px; 
+            border: 1px solid rgba(0,0,0,0.1); 
+            width: auto; 
+            height: auto;
+        }
+
+        .room-link i { color: black; margin-right: 5px; }
+
+        @media screen and (max-width: 800px) {
+            .nav-items { display: none; }
+            .open-btn { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="overlay" class="bg-overlay" onclick="closeNav()"></div>
+
+<div class="navbar">
+    <div class="logo">
+        <a href="/"><img src="assets/imgs/icon.png" alt="Logo"></a>
+    </div>
+
+    <ul class="nav-items">
+        <li><a href="#">Home</a></li>
+        <li class="dropdown">
+            <a onclick="toggleNavbarDropdown(event)">Rooms <i class="fa-solid fa-caret-down"></i></a>
+            <div id="navbarDropdown" class="dropdown-content">
+                <a href="#">Global Chat</a>
+                <a href="#">Indian Rooms</a>
+                <a href="#">Voice Chat</a>
+            </div>
+        </li>
+        <li><a href="#">About</a></li>
+    </ul>
+
+    <div class="open-btn" onclick="openNav()"><i class="fa-solid fa-bars"></i></div>
+</div>
+
+<div id="sideMenu" class="my-sidebar">
+    <div class="close-sidebar" onclick="closeNav()" style="position:absolute; top:15px; left:20px; font-size:30px; color:white; cursor:pointer;">&times;</div>
+    
+    <a href="#"><i class="fa-solid fa-user"></i> My Profile</a>
+    
+    <a href="javascript:void(0)" onclick="toggleSidebarDropdown()">
+        <i class="fa-solid fa-comments"></i> Rooms <i class="fa-solid fa-caret-down" style="float:right;"></i>
+    </a>
+    <div id="sidebarDropdown" class="sidebar-dropdown-container">
+        <a href="#">Global Chat</a>
+        <a href="#">Indian Rooms</a>
+        <a href="#">Private Groups</a>
+    </div>
+
+    <a href="#"><i class="fa-solid fa-gear"></i> App Settings</a>
+    <a href="#" style="color: #ff4d4d;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+
+    <p style="color: #555; font-size: 12px; text-align: center; margin-top: 50px;">Made by Yashwant Singh</p>
+</div>
+
+<main class="main-container">
+    <p style="font-size: 20px; margin-bottom: 10px;">Free Chat Rooms</p>
+    
+    <a href="#" class="chat-main-btn">
+       Free online chat without registration
+    </a>
+
+<div class="multiple-rooms" 
+     style="background-color: #337ab7; 
+            padding: 20px; 
+            text-align: center; 
+            max-width: 550px; 
+            margin: 20px auto; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            font-family: Arial, sans-serif;">
+
+    <h3 style="color: white; margin-bottom: 15px; font-size: 16px; font-weight: normal;">Select a Chat Link</h3>
+
+    <div class="rooms-grid" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;">
+        
+        <a href="" class="room-link" style="display: inline-flex; align-items: center; background-color: #5cb85c; color: white; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-weight: normal; font-size: 12px; border: 1px solid rgba(0,0,0,0.1); width: auto; height: auto;">
+            <i class="fa-regular fa-comment-dots" style="color: black; margin-right: 6px; font-size: 16px;"></i>
+            <div style="display: flex; flex-direction: column; text-align: left;">
+                link1
+                <span style="font-size: 9px; color: #8b0000; margin-top: 1px; font-weight: bold;">Not Active</span>
+            </div>
+        </a>
+        
+        <a href="" class="room-link" style="display: inline-flex; align-items: center; background-color: #d9534f; color: white; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-weight: normal; font-size: 12px; border: 1px solid rgba(0,0,0,0.1); width: auto; height: auto;">
+            <i class="fa-regular fa-comment-dots" style="color: black; margin-right: 6px; font-size: 16px;"></i>
+            <div style="display: flex; flex-direction: column; text-align: left;">
+                link2
+                <span style="font-size: 9px; color: #8b0000; margin-top: 1px; font-weight: bold;">Not Active</span>
+            </div>
+        </a>
+
+        <a href="Group-Chatroom.html" class="room-link" style="display: inline-flex; align-items: center; background-color: #5bc0de; color: black; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-weight: normal; font-size: 12px; border: 1px solid rgba(0,0,0,0.1); width: auto; height: auto;">
+            <i class="fa-solid fa-users" style="color: black; margin-right: 6px; font-size: 16px;"></i>
+            <div style="display: flex; flex-direction: column; text-align: left;">
+                Group-ChatRoom
+                <span style="font-size: 9px; color: #006400; margin-top: 1px; font-weight: bold;">Active Now</span>
+            </div>
+        </a>
+
+        <a href="" class="room-link" style="display: inline-flex; align-items: center; background-color: #5cb85c; color: white; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-weight: normal; font-size: 12px; border: 1px solid rgba(0,0,0,0.1); width: auto; height: auto;">
+            <i class="fa-solid fa-shuffle" style="color: black; margin-right: 6px; font-size: 16px;"></i>
+            <div style="display: flex; flex-direction: column; text-align: left;">
+                Random Chat
+                <span style="font-size: 9px; color: #8b0000; margin-top: 1px; font-weight: bold;">Not Active</span>
+            </div>
+        </a>
+        
+        <a href="" class="room-link" style="display: inline-flex; align-items: center; background-color: #5bc0de; color: black; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-weight: normal; font-size: 12px; border: 1px solid rgba(0,0,0,0.1); width: auto; height: auto;">
+            <i class="fa-solid fa-microphone" style="color: black; margin-right: 6px; font-size: 16px;"></i>
+            <div style="display: flex; flex-direction: column; text-align: left;">
+                Voice Chat
+                <span style="font-size: 9px; color: #8b0000; margin-top: 1px; font-weight: bold;">Not Active</span>
+            </div>
+        </a>
+        
+        <a href="" class="room-link" style="display: inline-flex; align-items: center; background-color: #f0ad4e; color: black; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-weight: normal; font-size: 12px; border: 1px solid rgba(0,0,0,0.1); width: auto; height: auto;">
+            <i class="fa-solid fa-comments" style="color: black; margin-right: 6px; font-size: 16px;"></i>
+            <div style="display: flex; flex-direction: column; text-align: left;">
+                Talk to Stranger
+                <span style="font-size: 9px; color: #8b0000; margin-top: 1px; font-weight: bold;">Not Active</span>
+            </div>
+        </a>
+    </div>
+</div>
+</main>
+
+<script>
+    /* Navbar Dropdown Toggle */
+    function toggleNavbarDropdown(event) {
+        event.stopPropagation();
+        document.getElementById("navbarDropdown").classList.toggle("show");
+    }
+
+    /* Sidebar Dropdown Toggle */
+    function toggleSidebarDropdown() {
+        var dropdown = document.getElementById("sidebarDropdown");
+        dropdown.style.display = (dropdown.style.display === "block") ? "none" : "block";
+    }
+
+    /* General Sidebar Controls */
+    function openNav() {
+        document.getElementById("sideMenu").style.width = "260px";
+        document.getElementById("overlay").style.display = "block";
+    }
+
+    function closeNav() {
+        document.getElementById("sideMenu").style.width = "0";
+        document.getElementById("overlay").style.display = "none";
+        document.getElementById("navbarDropdown").classList.remove("show");
+    }
+
+    /* Close dropdown when clicking outside */
+    window.onclick = function(event) {
+        if (!event.target.matches('.dropdown a')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
