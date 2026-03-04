@@ -54,16 +54,26 @@ async function sendToDiscord(channelId, message, updateName = false) {
 }
 
 // ---------------------------------------------------------
+// NEW: AUTO BAN EXPIRY CHECKER (Har 1 minute mein check karega)
+// ---------------------------------------------------------
+setInterval(() => {
+    const now = Date.now();
+    for (const ip in bannedIPs) {
+        if (now >= bannedIPs[ip]) {
+            // Ban khatam ho gaya!
+            sendToDiscord(ADMIN_CHANNEL_ID, `🔔 **Kiko Guard Notification:** IP \`${ip}\` ka ban time poora ho gaya hai. Woh ab website access kar sakta hai.`);
+            delete bannedIPs[ip]; // List se remove karo
+        }
+    }
+}, 60000); // 60,000ms = 1 Minute
+
+// ---------------------------------------------------------
 // 4. AGGRESSIVE BAN MIDDLEWARE (HTTP Level)
 // ---------------------------------------------------------
-// Yeh static files load hone se pehle check karega
 app.use((req, res, next) => {
     const userIP = getIP(req);
-    
     if (bannedIPs[userIP] && Date.now() < bannedIPs[userIP]) {
-        // Connection ko bina response ke destroy kar do
-        // Isse browser dikhayega: "This site can't be reached"
-        return res.socket.destroy(); 
+        return res.socket.destroy(); // ERR_CONNECTION_CLOSED
     }
     next();
 });
@@ -77,14 +87,13 @@ client.on('messageCreate', async (message) => {
     if (message.channel.id === ADMIN_CHANNEL_ID) {
         const args = message.content.split(' ');
 
-        // 1. Custom IP Ban: !ipban <IP> <Minutes>
         if (message.content.startsWith('!ipban')) {
             const targetIP = args[1];
             const minutes = parseInt(args[2]);
             if (targetIP && !isNaN(minutes)) {
                 // Formula: $expiry = Date.now() + (minutes \times 60000)$
-                bannedIPs[targetIP] = Date.now() + minutes * 60000;
-                message.reply(`🚫 **Kiko Guard:** IP \`${targetIP}\` block kar di gayi hai. Ab use website load hone par error dikhega.`);
+                bannedIPs[targetIP] = Date.now() + (minutes * 60000);
+                message.reply(`🚫 **Kiko Guard:** IP \`${targetIP}\` block kar di gayi hai **${minutes} minutes** ke liye.`);
                 
                 const allSockets = await io.fetchSockets();
                 allSockets.forEach(s => {
@@ -99,13 +108,13 @@ client.on('messageCreate', async (message) => {
             const targetIP = args[1];
             if (targetIP) {
                 delete bannedIPs[targetIP];
-                message.reply(`✅ **Kiko Guard:** IP \`${targetIP}\` unbanned.`);
+                message.reply(`✅ **Kiko Guard:** IP \`${targetIP}\` manually unban kar di gayi.`);
             }
         }
 
         if (message.content === '!banlist') {
             const list = Object.keys(bannedIPs).filter(ip => bannedIPs[ip] > Date.now());
-            message.reply(list.length > 0 ? `📜 **Banned IPs:**\n${list.join('\n')}` : "📝 No active bans.");
+            message.reply(list.length > 0 ? `📜 **Active Bans:**\n${list.join('\n')}` : "📝 No active bans.");
         }
     }
 
@@ -118,7 +127,6 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-// 5. Routes & Middleware
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (req, res) => { res.sendFile(path.join(__dirname, "public", "index.html")); });
 
@@ -158,7 +166,6 @@ io.on("connection", (socket) => {
 
             let discordContent = `**${currentUser}**: ${data.message}`;
             if (data.replyTo) {
-                // Formatting for Discord Quote
                 discordContent = `> *Replying to **${data.replyTo.sender}**: ${data.replyTo.message}*\n${discordContent}`;
             }
             sendToDiscord(CHAT_CHANNEL_ID, discordContent);
@@ -180,5 +187,5 @@ client.on('ready', () => { console.log(`✅ Kiko Bot is online as ${client.user.
 
 const PORT = process.env.PORT || 4000;
 client.login(DISCORD_TOKEN).then(() => {
-    http.listen(PORT, () => { console.log(`✅ Server running on http://localhost:${PORT}`); });
+    http.listen(PORT, () => { console.log(`✅ Server running on port ${PORT}`); });
 });
