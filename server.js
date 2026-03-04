@@ -16,6 +16,10 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
 
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/public/Group-Chatroom.html");
+});
+
 // Socket.IO connection
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
@@ -81,6 +85,102 @@ io.on("connection", (socket) => {
     }
   });
 });
+
+
+
+
+
+
+
+
+
+
+// Discord automated join and leave bot
+const express = require("express");
+const path = require("path");
+const { Client, GatewayIntentBits, EmbedBuilder, REST, Routes } = require('discord.js');
+
+// --- DISCORD BOT SETUP ---
+const client = new Client({
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
+});
+
+require('dotenv').config(); // Sabse upar add karein
+
+// Purani token line ko replace karein
+const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
+const STATUS_CHANNEL_ID = '1478764395491495977'; 
+
+// Function: Update Channel Name & Send Logs
+async function sendDiscordLog(message, updateCount = false) {
+    try {
+        const channel = await client.channels.fetch(STATUS_CHANNEL_ID);
+        if (channel) {
+            // Send the Text Message (Automatic)
+            await channel.send(message);
+            
+            // If updateCount is true, change channel name too
+            if (updateCount) {
+                const onlineCount = Object.keys(users).length;
+                await channel.setName(`🟢-active-${onlineCount}`);
+            }
+        }
+    } catch (err) {
+        console.error("Discord Error:", err.message);
+    }
+}
+
+app.use(express.static(path.join(__dirname, "public")));
+
+// --- SOCKET.IO LOGIC ---
+io.on("connection", (socket) => {
+    let currentUser = "";
+
+    // 1. AUTOMATIC JOIN MESSAGE
+    socket.on("join", (username) => {
+        if (!Object.values(users).includes(username)) {
+            currentUser = username;
+            users[socket.id] = username;
+
+            socket.emit("joined", username);
+            io.emit("user list", Object.values(users));
+
+            // Discord Notification
+            sendDiscordLog(`🌟 **${username}** is active now in our website`, true);
+        }
+    });
+
+    // 2. AUTOMATIC LEAVE MESSAGE
+    socket.on("disconnect", () => {
+        if (currentUser) {
+            // Discord Notification
+            sendDiscordLog(`👋 **${currentUser}** has been left our site`, true);
+            
+            delete users[socket.id];
+            io.emit("user list", Object.values(users));
+        }
+    });
+
+    // Chat Message Logic
+    socket.on("chat message", (data) => {
+        if (currentUser) {
+            socket.broadcast.emit("chat message", { ...data, sender: currentUser });
+        }
+    });
+});
+
+// Bot Ready
+client.on('ready', () => {
+    console.log(`✅ Discord Bot logged in as ${client.user.tag}`);
+});
+// ...........................................................................................active and leavebot code ended here
+
+
+
+
+
+
+
 
 // Start server
 const PORT = process.env.PORT || 4000;
