@@ -27,7 +27,7 @@ const STATUS_CHANNEL_ID  = '1478764395491495977';
 const CHAT_CHANNEL_ID    = '1478795441926836298'; 
 const ADMIN_CHANNEL_ID   = '1478734555971063971'; 
 const FIND_IP_CHANNEL_ID = '1478816709048668342'; 
-const MOD_LOG_CHANNEL_ID = 'YOUR_NEW_LOG_CHANNEL_ID'; // 👈 Yahan naya log channel ID daalein
+const MOD_LOG_CHANNEL_ID = '1478824787743735859'; // 👈 Yahan naya log channel ID daalein
 
 // --- 🛠️ HELPER: Get IP ---
 function getIP(reqOrSocket) {
