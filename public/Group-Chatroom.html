@@ -281,6 +281,7 @@
       right: 8px;
       cursor: pointer;
       font-weight: bold;
+      font-size: 20px;
       color: #888;
     }
 
@@ -457,7 +458,43 @@
         display: none;
         margin-top: 50px;
       }
+      
+#replyPreview .close-reply {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%); /* Vertical centering */
+    
+    /* ⭕ Attractive Red Circle */
+    width: 24px;
+    height: 24px;
+    background-color: #ef5350; /* vibrant, modern red */
+    border-radius: 50%;
+    
+    /* 🎯 Perfect Symbol Centering */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth ease */
+    border: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Depth and shadow */
+    
+    /* ❌ Style for single cross (×) text inside span */
+    color: white; /* White contrast */
+    font-size: 18px;
+    font-weight: 700; /* Bold */
+    line-height: 1;
+    text-align: center;
+}
 
+/* 💠 Hover Effect */
+#replyPreview .close-reply:hover {
+    background-color: #d32f2f; /* Darker red on hover */
+    transform: translateY(-50%) scale(1.1); /* Slight zoom-in */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3); /* Stronger shadow */
+}
       /* #chatArea {
     flex: 1;
     display: flex;
