@@ -138,25 +138,38 @@
       padding: 10px;
     }
 
-    #inputSection {
-      flex-shrink: 0;
-      display: flex;
-      padding: 10px;
-      background: #f0f0f0;
-      align-items: center;
-    }
+#inputSection {
+    display: flex;
+    padding: 10px 15px;
+    background: #f0f0f0;
+    align-items: flex-end; /* Text grow hone par buttons niche rahenge */
+    gap: 10px;
+    border-top: 1px solid #ddd;
+}
 
-    #input {
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      background: white;
-      resize: none;
-      width: 90%;
-      max-height: 120px;
-    }
-
+#input {
+    flex: 1; /* Ye textarea ko baaki bacha hua poora space de dega */
+    min-width: 0; /* Flexbox overflow fix */
+    padding: 12px 16px;
+    border-radius: 24px; /* Pill shape modern look */
+    font-size: 16px;
+    border: 1px solid #ccc;
+    background: white;
+    resize: none;
+    max-height: 120px;
+    line-height: 1.4;
+    outline: none;
+    transition: border-color 0.2s;
+}
+#input:focus {
+    border-color: #3f51b5;
+}
+.sendemojiearea {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 5px; /* Input ke saath align karne ke liye */
+}
     #send {
       padding: 6px 14px;
       margin-top: 5px;
@@ -482,22 +495,16 @@
       }
 
       /* Fixed input section at bottom */
-      #inputSection {
-        display: flex;
-        padding: 10px;
-        background: #f0f0f0;
-        align-items: center;
+#inputSection {
+        padding: 8px;
+        margin-bottom: 65px; /* Navbar ke upar rakhne ke liye */
+    }
 
-        margin-bottom: 65px;
-      }
-
-      #input {
-        flex: 1;
-        font-size: 16px;
-        padding: 12px 16px;
-        border-radius: 20px;
-        margin: 0;
-      }
+#input {
+        font-size: 16px; /* Mobile zoom prevent karne ke liye */
+        padding: 10px 14px;
+    }
+      /* ******************************************************************************************************************************* */
 
       #send {
         font-size: 16px;
