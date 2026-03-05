@@ -100,17 +100,11 @@
       scroll-behavior: smooth;
     }
 
-
-
-
     /* Firefox scrollbar */
     #chatWindow {
       scrollbar-width: thin;
       scrollbar-color: #888 #1e3a8a;
     }
-
-
-
 
     /* Scrollbar Styling for WebKit browsers (Chrome, Edge, Safari) */
     #chatWindow::-webkit-scrollbar {
@@ -130,10 +124,6 @@
     #chatWindow::-webkit-scrollbar-thumb:hover {
       background: #1e3a8a;
     }
-
-
-
-
 
     #chatArea {
       display: flex;
@@ -314,8 +304,6 @@
       cursor: pointer;
     }
 
-
-
     #emojiPicker {
       position: absolute;
       left: 0;
@@ -367,7 +355,6 @@
       position: relative;
       display: inline-block;
     }
-
 
     /* Close button inside the emoji picker */
     .emoji-close-btn {
@@ -435,14 +422,6 @@
       overflow-y: auto;
     }
 
-
-
-
-
-
-
-
-
     /* MEDIA QUERIES FORM HERE */
     @media (max-width: 768px) {
       body {
@@ -478,8 +457,6 @@
         padding: 12px;
       }
 
-
-
       #mobileNavbar button {
         background: none;
         border: none;
@@ -513,9 +490,6 @@
 
         margin-bottom: 65px;
       }
-
-
-
 
       #input {
         flex: 1;
@@ -616,7 +590,6 @@
         display: inline-block;
       }
 
-
       /* Close button inside the emoji picker */
       .emoji-close-btn {
         background-color: #d10000;
@@ -636,8 +609,6 @@
         padding: 10px;
       }
 
-
-
       .menu-btn {
         background: none;
         border: none;
@@ -652,18 +623,12 @@
         /* Always visible */
       }
 
-
-
-
       #replyPreview {
         position: relative;
         margin-top: -10px;
         margin-bottom: 5px;
       }
     }
-
-
-
 
     #customMenu {
       position: absolute;
@@ -692,10 +657,6 @@
       background-color: #e0e0e0;
     }
 
-
-
-
-
     .divider {
       display: inline-block;
       width: 1px;
@@ -710,9 +671,19 @@
 
 
 
+/* 🛡️ Media Protection: Long-press aur select band karne ke liye */
+img, video, audio {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
 
-
-
+/* Image par click band, par video/audio ke controls chalne chahiye */
+.message img { pointer-events: none; } 
+.message video, .message audio { pointer-events: auto !important; }
 
 
 
@@ -755,6 +726,107 @@
       margin-left: 5px;
       /* Icon aur text ke beech thoda space */
     }
+
+    /* 🎤 Recording & Media CSS */
+    .message img,
+    .message video {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 5px;
+      display: block;
+    }
+
+    .message audio {
+      width: 100%;
+      margin-top: 5px;
+    }
+
+    .recording {
+      color: red !important;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+
+
+
+
+
+
+
+/* --- 🛠️ Standard Modal Styling --- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; 
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Simple dim background */
+    z-index: 100000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 4px; /* Sharp professional corners */
+    width: 90%;
+    max-width: 380px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    color: #000;
+}
+
+.modal-box h3 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.modal-box p {
+    margin: 0 0 24px 0;
+    font-size: 14px;
+    color: #444;
+    line-height: 1.4;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end; /* Standard right-aligned buttons */
+    gap: 10px;
+}
+
+.modal-buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 2px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-transform: uppercase; /* Standard Material/System style */
+}
+
+/* Cancel Style */
+.btn-secondary {
+    background: transparent;
+    color: #3f51b5; /* Matching your theme color */
+}
+.btn-secondary:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+/* Delete Style */
+.btn-primary {
+    background: #d32f2f; /* Standard Error/Danger Red */
+    color: #fff;
+}
+.btn-primary:hover {
+    background: #b71c1c;
+}
   </style>
 </head>
 
@@ -769,42 +841,22 @@
     </div>
   </div>
 
-
-
-
-
-
-
   <div id="chat">
     <div id="chatContainer">
 
       <div id="chatArea">
 
-
-        <!-- Logo -->
-<div class="chatHeader">
-    <div class="logo">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="chat-icon">
-            <path fill="#ffffff"
+        <div class="chatHeader">
+          <div class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="chat-icon">
+              <path fill="#ffffff"
                 d="M20 2H4C2.9 2 2 2.9 2 4v14c0 1.1 0.9 2 2 2h14l4 4V4c0-1.1-0.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
-        </svg>
-        <span class="logo-text">StrangertoStranger</span>
-    </div>
-    
-    </div> 
+            </svg>
+            <span class="logo-text">StrangertoStranger</span>
+          </div>
 
+        </div>
 
-
-
-
-
-
-
-
-
-
-
-        <!-- Mobile Navbar -->
         <div id="mobileNavbar">
           <button class="header-action-btn compact-icon" onclick="toggleUsers()" title="Online Users">
             <i class="fa-solid fa-users"></i> </button>
@@ -817,76 +869,6 @@
             <i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        <!-- <div class="chatRooms">
-  <button onclick="window.open('Rooms/WorldChat.html', '_blank')">
-    <b>World Chat🌐🌍</b>
-  </button>
-  
-  <button onclick="window.open('Rooms/InternationalChatRoom.html', '_blank')">
-    <b>International Chat Room 💬</b>
-  </button>
-  
-  <button onclick="window.open('Rooms/ChenniKhenni.html', '_blank')">
-    Chenni Khenni 🍬😂
-  </button>
-  
-  <button onclick="window.open('Rooms/MemesOnly.html', '_blank')">
-    Memes Only 🤣📸
-  </button>
-  
-  <button onclick="window.open('Rooms/NimbuMirchi.html', '_blank')">
-    Nimbu Mirchi 🌶🍋
-  </button>
-</div> -->
-
-
-
-
-
-
         <div id="chatWindow"></div>
         <div id="replyPreview">
           <span id="replyText"></span>
@@ -896,59 +878,23 @@
 
           <textarea id="input" placeholder="Type a message..." rows="1"></textarea>
 
-          <!-- Send & Emoji buttons container -->
           <div class="sendemojiearea">
+            <input type="file" id="mediaInput" accept="image/*,video/*" style="display:none;">
+            <button id="mediaBtn" title="Upload Media" style="background:none; border:none; cursor:pointer; font-size:20px;">📎</button>
+            <button id="voiceBtn" title="Record Voice" style="background:none; border:none; cursor:pointer; font-size:20px;">🎤</button>
             <button id="emojiToggle" style="border: none; font-size: 22px; cursor: pointer;">😀</button>
             <button id="send">Send</button>
 
-            <!-- Emoji Picker -->
             <div id="emojiPicker">
               <button id="closeEmojiPicker" class="emoji-close-btn">×</button>
             </div>
 
-
           </div>
-
-
 
         </div>
       </div>
 
       <div id="userList" style="position:relative; padding:10px;">
-
-
-        <!-- <div style="margin-bottom:8px;">
-    <button onclick="toggleDropdown()" 
-      style="padding:5px 12px; background:#3f51b5; color:white; border:none; border-radius:4px; cursor:pointer; font-size:13px; font-weight:500;">
-      🌐 Rooms
-    </button>
-  </div> -->
-
-
-        <!-- <div id="roomsDropdown" 
-    style="display:none; position:absolute; top:40px; left:10px; background:white; width:170px; max-height:180px; overflow-y:auto; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.25); z-index:1000; padding:6px;">
-
-
-    <button onclick="window.location.href='Rooms/room1.html'" 
-      style="display:block; width:100%; margin:3px 0; padding:6px; border:none; border-radius:6px; background:#f7f7f7; cursor:pointer; text-align:left; font-size:13px;">
-      <b>World Chat🌐🌍</b>
-    </button>
-
-    <button onclick="window.location.href='Rooms/room2.html'" 
-      style="display:block; width:100%; margin:3px 0; padding:6px; border:none; border-radius:6px; background:#f7f7f7; cursor:pointer; text-align:left; font-size:13px;">
-      Nimbu Mirchi 🌶🍋
-    </button>
-
-    <button onclick="window.location.href='Rooms/room3.html'" 
-      style="display:block; width:100%; margin:3px 0; padding:6px; border:none; border-radius:6px; background:#f7f7f7; cursor:pointer; text-align:left; font-size:13px;">
-      Chenni Khenni 🍬😂
-    </button>
-
-    <button onclick="window.location.href='Rooms/room4.html'" 
-      style="display:block; width:100%; margin:3px 0; padding:6px; border:none; border-radius:6px; background:#f7f7f7; cursor:pointer; text-align:left; font-size:13px;">
-      Memes Only 🤣📸
-    </button>
-  </div> -->
 
         <h4 style="margin-top:10px;">Users :-</h4>
         <div id="users"></div>
@@ -957,10 +903,6 @@
       <audio id="notifSound" src="https://cdn.glitch.global/StrangertoStranger/sound.mp3?v=1234567890"
         preload="auto"></audio>
 
-
-
-
-      <!-- User Overlay Modal -->
       <div id="userOverlay">
         <div class="overlay-header">
           <span>Online Users</span>
@@ -968,10 +910,6 @@
         </div>
         <div class="overlay-body" id="overlayUsers"></div>
       </div>
-
-
-
-
 
       <div id="customMenu">
         <ul>
@@ -985,16 +923,49 @@
 
 
 
+
+
+<div id="deleteModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Delete message?</h3>
+        <p>Are you sure you want to delete this message for everyone?</p>
+        <div class="modal-buttons">
+            <button id="cancelDelBtn" class="btn-secondary">Cancel</button>
+            <button id="confirmDelBtn" class="btn-primary">Delete</button>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
       <script src="/socket.io/socket.io.js"></script>
       <script>
-
-
-
-
-
-
-
         const socket = io();
+        // --- 🗑️ DELETE MODAL CONTROLLER ---
+let pendingDeleteId = null; 
+
+const delModal = document.getElementById('deleteModal');
+const confirmBtn = document.getElementById('confirmDelBtn');
+const cancelBtn = document.getElementById('cancelDelBtn');
+
+function closeDeleteModal() {
+    delModal.style.display = 'none';
+    pendingDeleteId = null;
+}
+
+// Jab 'Haan' dabayein
+confirmBtn.onclick = () => {
+    if (pendingDeleteId) {
+        socket.emit('delete message', pendingDeleteId);
+        closeDeleteModal();
+    }
+};
+
+// Jab 'Nahi' dabayein
+cancelBtn.onclick = closeDeleteModal;
         const login = document.getElementById('login');
         const chat = document.getElementById('chat');
         const usernameInput = document.getElementById('username');
@@ -1008,19 +979,37 @@
         const usersDiv = document.getElementById('users');
         const emojiBtn = document.getElementById('emojiToggle');
         const emojiPicker = document.getElementById('emojiPicker');
-
+        
+        // 🎤 New Media Selectors
+        const mediaInput = document.getElementById('mediaInput');
+        const mediaBtn = document.getElementById('mediaBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
 
         function autoScroll() {
           const cw = document.getElementById('chatWindow');
           cw.scrollTop = cw.scrollHeight;
         }
 
+
+
+
+
+        // 🗑️ Server se delete signal receive karna
+socket.on('delete message', (id) => {
+    const element = document.querySelector(`[data-id="${id}"]`);
+    if (element) element.remove();
+});
+
+
+
+
         // After appendMessage(data...)
         autoScroll();
 
-
         let currentUser = '';
         let replyData = null;
+        let mediaRecorder; // 🎤 Global for voice
+        let audioChunks = [];
 
         const savedName = localStorage.getItem('username');
         if (savedName) {
@@ -1042,19 +1031,10 @@
           socket.emit('join', name);
         };
 
-
-
-
-
         if (document.hidden) {
           document.title = '🔔 New message!';
           setTimeout(() => { document.title = 'StrangertoStranger'; }, 3000);
         }
-
-
-
-
-
 
         socket.on('duplicate', () => {
           loginError.textContent = '❌ Username already taken. Try another.';
@@ -1075,16 +1055,20 @@
           }
         });
 
-        function sendMessage() {
-          const message = input.value.trim();
-          if (!message) return;
-          const data = { sender: currentUser, message, replyTo: replyData };
-          socket.emit('chat message', data);
-          appendMessage(data, true);
-          input.value = '';
-          resizeInput();
-          cancelReply();
-        }
+function sendMessage() {
+    const message = input.value.trim();
+    if (!message) return;
+    
+    // ✨ Har message ke liye unique ID
+    const msgId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+    
+    const data = { id: msgId, sender: currentUser, message, replyTo: replyData, type: 'text' };
+    socket.emit('chat message', data);
+    appendMessage(data, true);
+    input.value = '';
+    cancelReply();
+    input.style.height = 'auto';
+}
 
         // index.html JS file ke andar
         // index.html ke script mein
@@ -1104,80 +1088,132 @@
 
 
 
+        
 
-        function appendMessage(data, isMe) {
-          const container = document.createElement('div');
-          container.className = 'message-container';
+function appendMessage(data, isMe) {
+    // 1. Container setup with Unique ID
+    const container = document.createElement('div');
+    container.className = 'message-container';
+    container.setAttribute('data-id', data.id); // 🆔 Important for Delete for Everyone
 
-          const msgDiv = document.createElement('div');
-          msgDiv.className = `message ${isMe ? 'me' : 'other'}`;
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${isMe ? 'me' : 'other'}`;
 
-          if (!isMe) {
-            const label = document.createElement('div');
-            label.className = 'username-label';
-            label.textContent = data.sender;
-            label.onclick = () => insertMention(data.sender);
-            msgDiv.appendChild(label);
-          }
+    // 2. Mentions Logic (@Name click)
+    if (!isMe) {
+        const label = document.createElement('div');
+        label.className = 'username-label';
+        label.textContent = data.sender;
+        label.onclick = () => insertMention(data.sender);
+        msgDiv.appendChild(label);
+    }
 
-          if (data.replyTo) {
-            const replyBlock = document.createElement('div');
-            replyBlock.className = 'reply-block';
-            replyBlock.textContent = `${data.replyTo.sender}: ${data.replyTo.message}`;
-            msgDiv.appendChild(replyBlock);
-          }
+    // 3. Reply Block (Visual Reference)
+    if (data.replyTo) {
+        const replyBlock = document.createElement('div');
+        replyBlock.className = 'reply-block';
+        replyBlock.textContent = `${data.replyTo.sender}: ${data.replyTo.message.substring(0, 30)}...`;
+        msgDiv.appendChild(replyBlock);
+    }
 
-          const messageText = document.createElement('div');
-          const formatted = data.message.replace(/@([^@:]+):/g, (_, name) => {
-            return `<span class="mention" data-user="${name}">@${name}:</span>`;
-          });
-          messageText.innerHTML = formatted;
-          msgDiv.appendChild(messageText);
+    // 4. Media Rendering + 🛡️ Anti-Download Security
+    if (data.type === 'image') {
+        const img = document.createElement('img');
+        img.src = data.message;
+        img.style.pointerEvents = 'none'; // 🚫 Click disable
+        img.oncontextmenu = (e) => e.preventDefault(); // 🚫 Right click block
+        msgDiv.appendChild(img);
+    } else if (data.type === 'video') {
+        const video = document.createElement('video');
+        video.src = data.message;
+        video.controls = true;
+        video.setAttribute('controlsList', 'nodownload'); // 🚫 Hide Download Button
+        video.oncontextmenu = (e) => e.preventDefault();
+        msgDiv.appendChild(video);
+    } else if (data.type === 'audio') {
+        const audio = document.createElement('audio');
+        audio.src = data.message;
+        audio.controls = true;
+        audio.setAttribute('controlsList', 'nodownload');
+        audio.oncontextmenu = (e) => e.preventDefault();
+        msgDiv.appendChild(audio);
+    } else {
+        // Text & Mention Formatting
+        const textDiv = document.createElement('div');
+        const formatted = (data.message || "").replace(/@([^@:]+):/g, (_, name) => 
+            `<span style="color:#3f51b5; font-weight:bold; cursor:pointer;" onclick="insertMention('${name}')">@${name}:</span>`);
+        textDiv.innerHTML = formatted;
+        msgDiv.appendChild(textDiv);
+    }
 
-          const menuBtn = document.createElement('button');
-          menuBtn.className = 'menu-btn';
-          menuBtn.textContent = '⋮';
+    // 5. ⋮ Custom Menu (Reply & Delete)
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'menu-btn';
+    menuBtn.innerHTML = '⋮';
+    
+    const menu = document.createElement('div');
+    menu.className = 'message-menu';
+    
+    // Reply Option
+    const rBtn = document.createElement('button');
+    rBtn.innerHTML = '<i class="fa-solid fa-reply"></i> Reply';
+    rBtn.onclick = () => { 
+        setReply(data.sender, data.type === 'text' ? data.message : `sent a ${data.type}`); 
+        menu.style.display = 'none'; 
+    };
+    menu.appendChild(rBtn);
 
-          const menu = document.createElement('div');
-          menu.className = 'message-menu';
+    // 👑 Delete Logic (User can delete own, Admin can delete ALL)
+    // "Yashwant" ki jagah apna actual username likhein jo aap use karte hain
+    const isAdmin = (currentUser === "Yashwant"); 
 
-          const replyBtn = document.createElement('button');
-          replyBtn.textContent = 'Reply';
-          replyBtn.onclick = () => {
-            setReply(data.sender, data.message);
-            menu.style.display = 'none';
-          };
-          menu.appendChild(replyBtn);
+    if (isMe || isAdmin) {
+        const dBtn = document.createElement('button');
+        dBtn.innerHTML = '<i class="fa-solid fa-trash"></i> Delete for All';
+        dBtn.style.color = 'red';
+// Purane dBtn.onclick ko isse badal dein:
+dBtn.onclick = () => {
+    pendingDeleteId = data.id; // Message ID save karein
+    delModal.style.display = 'flex'; // Center modal dikhayein
+    menu.style.display = 'none'; // ⋮ Menu band karein
+};
+        menu.appendChild(dBtn);
+    }
 
-          if (isMe) {
-            const delBtn = document.createElement('button');
-            delBtn.textContent = 'Delete';
-            delBtn.onclick = () => container.remove();
-            menu.appendChild(delBtn);
-          }
+    // Toggle Menu Visibility
+    menuBtn.onclick = (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.message-menu').forEach(m => m.style.display = 'none');
+        menu.style.display = 'flex';
+        // Auto-position menu
+        menu.style.top = isMe ? '30px' : '30px';
+        if (isMe) menu.style.right = '0'; else menu.style.left = '0';
+    };
 
-          menuBtn.onclick = (e) => {
-            e.stopPropagation();
-            document.querySelectorAll('.message-menu').forEach(m => m.style.display = 'none');
-            menu.style.display = 'flex';
-          };
+    container.appendChild(msgDiv);
+    container.appendChild(menuBtn);
+    container.appendChild(menu);
+    chatWindow.appendChild(container);
+    
+    // Auto Scroll to bottom
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    
+}
 
-          document.addEventListener('click', () => {
-            menu.style.display = 'none';
-          });
 
-          container.appendChild(msgDiv);
-          container.appendChild(menuBtn);
-          container.appendChild(menu);
-          chatWindow.appendChild(container);
-          chatWindow.scrollTop = chatWindow.scrollHeight;
 
-          setTimeout(() => {
-            messageText.querySelectorAll('.mention').forEach(m => {
-              m.onclick = () => insertMention(m.dataset.user);
-            });
-          }, 0);
-        }
+
+
+// 🗑️ Server se aane wala delete signal receive karna
+socket.on('delete message', (msgId) => {
+    const element = document.querySelector(`[data-id="${msgId}"]`);
+    if (element) {
+        element.style.transition = "0.3s";
+        element.style.opacity = "0";
+        setTimeout(() => element.remove(), 300);
+    }
+});
+
 
         function setReply(sender, message) {
           replyData = { sender, message };
@@ -1229,11 +1265,57 @@
           });
         });
 
+        // 🎤 VOICE RECORDING LOGIC
+        voiceBtn.onclick = async () => {
+            if (mediaRecorder && mediaRecorder.state === "recording") {
+                mediaRecorder.stop();
+                voiceBtn.classList.remove('recording');
+                // Example for sendMessage:
+const msgId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+const data = { id: msgId, sender: currentUser, message, type: 'text' };
+                return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const data = { sender: currentUser, message: e.target.result, type: 'audio' };
+                        socket.emit('chat message', data);
+                        appendMessage(data, true);
+                    };
+                    reader.readAsDataURL(audioBlob);
+                };
+                mediaRecorder.start();
+                voiceBtn.classList.add('recording');
+            } catch (err) { alert("Microphone access denied!"); }
+        };
+
+        // 📁 FILE UPLOAD LOGIC
+        mediaBtn.onclick = () => mediaInput.click();
+        mediaInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const data = { 
+                    sender: currentUser, 
+                    message: event.target.result, 
+                    type: file.type.startsWith('image') ? 'image' : 'video' 
+                };
+                socket.emit('chat message', data);
+                appendMessage(data, true);
+            };
+            reader.readAsDataURL(file);
+            mediaInput.value = ''; 
+        };
+
         // Emoji list
-        const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '🤗', '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '🥱', '😴', '😌', '😜', '🤪', '😝', '🤑', '🤗', '😎', '🤓', '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👻', '👽', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', , '💌', '💘', '💝', '💖', '💗', '💓', '💞', '💕', '💟', '❣️', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💯', '🔥', '🎉', '🥳', '✨', '🌟', '👍', '👎', '👏', '🙌', '🙏', '🫶']
-
-
-          ;
+        const emojis = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '🤗', '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '🥱', '😴', '😌', '😜', '🤪', '😝', '🤑', '🤗', '😎', '🤓', '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👻', '👽', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', , '💌', '💘', '💝', '💖', '💗', '💓', '💞', '💕', '💟', '❣️', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💯', '🔥', '🎉', '🥳', '✨', '🌟', '👍', '👎', '👏', '🙌', '🙏', '🫶'];
 
         // Populate emoji picker
         emojis.forEach(emoji => {
@@ -1272,15 +1354,10 @@
           });
         };
 
-
         // Hide picker on outside click
         document.addEventListener('click', () => {
           emojiPicker.style.display = 'none';
         });
-
-
-
-
 
         const customMenu = document.getElementById("customMenu");
 
@@ -1304,11 +1381,6 @@
           }
         });
 
-
-
-
-
-
         // Insert emoji at cursor
         function insertAtCursor(textarea, emoji) {
           const start = textarea.selectionStart;
@@ -1321,10 +1393,7 @@
           textarea.focus();
           resizeInput();
         }
-        // Hide picker on outside click
-        document.addEventListener('click', () => {
-          emojiPicker.style.display = 'none';
-        });
+
         // Close button inside picker
         document.getElementById('closeEmojiPicker').onclick = (e) => {
           e.stopPropagation();
@@ -1343,19 +1412,6 @@
         function closeUserOverlay() {
           document.getElementById('userOverlay').style.display = 'none';
         }
-        function insertAtCursor(textarea, emoji) {
-          const start = textarea.selectionStart;
-          const end = textarea.selectionEnd;
-          const textBefore = textarea.value.substring(0, start);
-          const textAfter = textarea.value.substring(end);
-
-          textarea.value = textBefore + emoji + textAfter;
-          textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
-          textarea.focus();
-          resizeInput(); // Optional: resize after emoji is added
-        }
-
-
 
         // // Disable right-click
         // document.addEventListener("contextmenu", e => e.preventDefault());
@@ -1372,7 +1428,6 @@
         //   }
         // });
 
-
         //   setInterval(function() {
         //   const start = performance.now();
         //   debugger;
@@ -1382,19 +1437,11 @@
         //   }
         // }, 1000);
 
-
-
-        sound.play().then(() => { }).catch(err => console.warn("Autoplay issue", err));
-
-
-
-
         // Rooms
         function toggleDropdown() {
           var dropdown = document.getElementById("roomsDropdown");
           dropdown.style.display = (dropdown.style.display === "block") ? "none" : "block";
         }
-
       </script>
 
 </body>
