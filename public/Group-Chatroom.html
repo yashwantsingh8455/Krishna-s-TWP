@@ -3,25 +3,38 @@
 <head>
     <title>Stranger to Stranger - 2026 Chatroom</title>
     <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #ffffff; /* Bilkul white background */
-        }
+body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #ffffff;
+    }
 
-        /* 🖼️ Normal Plain Iframe Styling */
-        .app-frame {
-            width: 85%;          /* Screen ki lagbhag puri width */
-            max-width: 1200px;   /* Desktop par limit */
-            height: 80vh;        /* Height thodi badha di */
-            border: none; /* Sirf ek patli normal border */
-            border-radius: 0;    /* Sharp corners, koi rounding nahi */
-            box-shadow: none;    /* Shadow bilkul khatam */
-            overflow: hidden;
+    /* 🖼️ Iframe Base Styling */
+    .app-frame {
+        width: 85%;          /* Desktop par 85% width */
+        max-width: 1200px;   
+        height: 85vh;        /* Desktop par thodi height chodi hai */
+        border: 1px solid #ddd;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    /* 📱 Phone ke liye special setting (Jab screen 768px se choti ho) */
+    @media (max-width: 768px) {
+        body {
+            align-items: flex-start; /* Centering hata kar top se start karein */
         }
+        
+        .app-frame {
+            width: 100%;      /* 🎯 Phone par poori width */
+            height: 100vh;     /* 🎯 Phone par poori height (No scroll bars outside) */
+            max-width: none;   /* Limit hata do */
+            border: none;      /* Border hata do taki app jaisa lage */
+        }
+    }
     </style>
 </head>
 <body>
