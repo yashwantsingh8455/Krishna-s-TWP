@@ -1,45 +1,728 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Stranger to Stranger - 2026 Chatroom</title>
-    <style>
-body {
-        margin: 0;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #ffffff;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StrangerToStranger — Live Chat 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#08090d;
+  --surface:#0f1117;
+  --card:#141720;
+  --border:rgba(255,255,255,0.06);
+  --accent:#00f5a0;
+  --accent2:#00d9f5;
+  --red:#ff3c5f;
+  --yellow:#ffd60a;
+  --text:#e8eaf0;
+  --muted:#5a5f7a;
+  --glow:rgba(0,245,160,0.15);
+}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:grid;
+  grid-template-columns:200px 1fr 200px;
+  grid-template-rows:auto 1fr auto;
+  height:100vh;
+  overflow:hidden;
+}
 
-    /* 🖼️ Iframe Base Styling */
-    .app-frame {
-        width: 85%;          /* Desktop par 85% width */
-        max-width: 1200px;   
-        height: 85vh;        /* Desktop par thodi height chodi hai */
-        border: 1px solid #ddd;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
+/* ── Noise overlay ── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;
+}
 
-    /* 📱 Phone ke liye special setting (Jab screen 768px se choti ho) */
-    @media (max-width: 768px) {
-        body {
-            align-items: flex-start; /* Centering hata kar top se start karein */
-        }
-        
-        .app-frame {
-            width: 100%;      /* 🎯 Phone par poori width */
-            height: 100vh;     /* 🎯 Phone par poori height (No scroll bars outside) */
-            max-width: none;   /* Limit hata do */
-            border: none;      /* Border hata do taki app jaisa lage */
-        }
-    }
-    </style>
+/* ── Topbar ── */
+.topbar{
+  grid-column:1/-1;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  height:54px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  position:relative;z-index:10;
+  flex-shrink:0;
+}
+.topbar-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:26px;
+  letter-spacing:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.topbar-center{
+  display:flex;align-items:center;gap:20px;
+}
+.top-tag{
+  font-size:11px;font-weight:600;
+  padding:4px 12px;border-radius:20px;
+  border:1px solid var(--border);color:var(--muted);
+  letter-spacing:.5px;
+}
+.live-dot{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:700;color:var(--accent);
+  font-family:'JetBrains Mono',monospace;
+}
+.live-dot::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 10px var(--accent);
+  animation:blink 1.2s infinite;
+}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.report-btn{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,60,95,0.12);
+  border:1px solid rgba(255,60,95,0.3);
+  color:var(--red);
+  padding:6px 14px;border-radius:8px;
+  font-size:13px;font-weight:600;cursor:pointer;
+  transition:.2s;font-family:inherit;
+}
+.report-btn:hover{background:rgba(255,60,95,0.25);}
+.rules-btn{
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+  color:var(--muted);padding:6px 14px;
+  border-radius:8px;font-size:13px;font-weight:600;
+  cursor:pointer;transition:.2s;font-family:inherit;
+}
+.rules-btn:hover{color:var(--text);background:rgba(255,255,255,0.09);}
+
+/* ── Left Sidebar ── */
+.left-sidebar{
+  grid-column:1;grid-row:2;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;gap:14px;
+  padding:14px 10px;
+  overflow-y:auto;
+  position:relative;z-index:5;
+}
+.left-sidebar::-webkit-scrollbar{width:0;}
+
+/* ── Right Sidebar ── */
+.right-sidebar{
+  grid-column:3;grid-row:2;
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;gap:14px;
+  padding:14px 10px;
+  overflow-y:auto;
+  position:relative;z-index:5;
+}
+.right-sidebar::-webkit-scrollbar{width:0;}
+
+/* ── Ad Card ── */
+.ad-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  flex-shrink:0;
+}
+.ad-label{
+  font-size:9px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;
+  color:var(--muted);
+  padding:5px 10px;
+  background:rgba(255,255,255,0.03);
+  border-bottom:1px solid var(--border);
+}
+.ad-inner{padding:12px 10px;}
+.ad-inner img{width:100%;border-radius:8px;display:block;}
+
+/* Fake ad designs */
+.ad-fake{
+  border-radius:8px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:.2s;
+}
+.ad-fake:hover{opacity:.85;transform:scale(.98);}
+
+.ad-gaming{
+  background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  padding:14px;border-radius:8px;text-align:center;cursor:pointer;
+  transition:.2s;
+}
+.ad-gaming:hover{transform:scale(.97);}
+.ad-gaming .ad-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#fff;margin-bottom:4px;}
+.ad-gaming .ad-sub{font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:10px;}
+.ad-gaming .ad-cta{
+  background:linear-gradient(90deg,#f72585,#7209b7);
+  color:#fff;font-size:11px;font-weight:700;
+  padding:5px 14px;border-radius:20px;
+  display:inline-block;
+}
+
+.ad-crypto{
+  background:linear-gradient(135deg,#000000,#1a1a2e);
+  border:1px solid rgba(255,214,10,0.2);
+  padding:14px;border-radius:8px;text-align:center;cursor:pointer;
+  transition:.2s;
+}
+.ad-crypto:hover{transform:scale(.97);}
+.ad-crypto .coin{font-size:28px;margin-bottom:6px;}
+.ad-crypto .ad-title{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--yellow);font-weight:700;}
+.ad-crypto .ad-sub{font-size:10px;color:rgba(255,255,255,0.5);margin:4px 0 10px;}
+.ad-crypto .ad-cta{
+  background:var(--yellow);color:#000;
+  font-size:11px;font-weight:700;
+  padding:5px 14px;border-radius:20px;display:inline-block;
+}
+
+.ad-vpn{
+  background:linear-gradient(135deg,#023e8a,#0077b6);
+  padding:14px;border-radius:8px;text-align:center;cursor:pointer;
+  transition:.2s;
+}
+.ad-vpn:hover{transform:scale(.97);}
+.ad-vpn .shield{font-size:28px;margin-bottom:6px;}
+.ad-vpn .ad-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;}
+.ad-vpn .ad-sub{font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:10px;}
+.ad-vpn .ad-cta{background:#fff;color:#023e8a;font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;display:inline-block;}
+
+.ad-dating{
+  background:linear-gradient(135deg,#3d0030,#6a0050);
+  padding:14px;border-radius:8px;text-align:center;cursor:pointer;
+  transition:.2s;
+}
+.ad-dating:hover{transform:scale(.97);}
+.ad-dating .heart{font-size:28px;margin-bottom:6px;}
+.ad-dating .ad-title{font-size:14px;font-weight:700;color:#ff85a1;margin-bottom:4px;}
+.ad-dating .ad-sub{font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:10px;}
+.ad-dating .ad-cta{background:linear-gradient(90deg,#ff6b9d,#ff3c5f);color:#fff;font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;display:inline-block;}
+
+.ad-app{
+  background:linear-gradient(135deg,#1a1a1a,#2d2d2d);
+  border:1px solid rgba(0,245,160,0.15);
+  padding:14px;border-radius:8px;text-align:center;cursor:pointer;
+  transition:.2s;
+}
+.ad-app:hover{transform:scale(.97);}
+.ad-app .app-icon{font-size:28px;margin-bottom:6px;}
+.ad-app .ad-title{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+.ad-app .ad-sub{font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:10px;}
+.ad-app .ad-cta{background:var(--accent);color:#000;font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;display:inline-block;}
+
+/* Stats widget */
+.stats-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:14px;
+}
+.stats-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);}
+.stat-row:last-child{border:none;}
+.stat-label{font-size:11px;color:var(--muted);}
+.stat-val{font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent);}
+
+/* Rules card */
+.rules-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:14px;
+}
+.rules-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px;}
+.rule-item{display:flex;gap:8px;font-size:11px;color:var(--muted);margin-bottom:7px;line-height:1.4;}
+.rule-item i{color:var(--accent);font-size:10px;margin-top:2px;flex-shrink:0;}
+
+/* ── Chat Frame ── */
+.chat-wrap{
+  grid-column:2;grid-row:2;
+  display:flex;flex-direction:column;
+  overflow:hidden;position:relative;z-index:5;
+  background:var(--bg);
+}
+.chat-wrap iframe{
+  flex:1;width:100%;border:none;
+  display:block;
+}
+
+/* ── Bottom Bar ── */
+.bottom-bar{
+  grid-column:1/-1;grid-row:3;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;height:36px;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  font-size:11px;color:var(--muted);
+  position:relative;z-index:10;
+}
+.bottom-ticker{
+  display:flex;align-items:center;gap:8px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--muted);overflow:hidden;flex:1;
+}
+.ticker-label{
+  background:var(--accent);color:#000;
+  font-weight:700;padding:1px 8px;border-radius:3px;
+  flex-shrink:0;font-size:9px;letter-spacing:.5px;
+}
+.ticker-text{
+  white-space:nowrap;
+  animation:scroll 30s linear infinite;
+}
+@keyframes scroll{0%{transform:translateX(100%);}100%{transform:translateX(-100vw);}}
+.bottom-right{display:flex;align-items:center;gap:16px;}
+.bottom-link{color:var(--muted);text-decoration:none;font-size:11px;transition:.2s;}
+.bottom-link:hover{color:var(--text);}
+
+/* ── Report Modal ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);
+  z-index:9999;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex;}
+.report-modal{
+  background:var(--card);
+  border:1px solid rgba(255,60,95,0.25);
+  border-radius:20px;padding:32px;
+  width:90%;max-width:460px;
+  box-shadow:0 0 60px rgba(255,60,95,0.15);
+  animation:modalIn .3s ease;
+  position:relative;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.9) translateY(20px);}to{opacity:1;transform:none;}}
+.modal-close{
+  position:absolute;top:16px;right:16px;
+  background:rgba(255,255,255,0.07);border:none;
+  color:var(--muted);width:32px;height:32px;border-radius:8px;
+  font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:.2s;
+}
+.modal-close:hover{color:var(--text);background:rgba(255,255,255,0.12);}
+.modal-icon{font-size:36px;margin-bottom:10px;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--red);margin-bottom:6px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.5;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;display:block;}
+.form-input,.form-textarea,.form-select{
+  width:100%;background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);border-radius:10px;
+  color:var(--text);font-size:14px;font-family:inherit;
+  padding:10px 14px;outline:none;transition:.2s;
+}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:rgba(255,60,95,0.5);}
+.form-input::placeholder,.form-textarea::placeholder{color:var(--muted);}
+.form-textarea{resize:vertical;min-height:90px;line-height:1.5;}
+.form-select{cursor:pointer;}
+.form-select option{background:var(--card);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.submit-report-btn{
+  width:100%;padding:13px;margin-top:6px;
+  background:linear-gradient(135deg,var(--red),#c0182e);
+  border:none;border-radius:10px;
+  color:#fff;font-size:15px;font-weight:700;
+  font-family:inherit;cursor:pointer;
+  transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.submit-report-btn:hover{opacity:.88;transform:translateY(-1px);}
+.submit-report-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+#reportStatus{margin-top:10px;font-size:13px;text-align:center;min-height:18px;}
+
+/* ── Rules Modal ── */
+.rules-modal{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:32px;width:90%;max-width:440px;
+  animation:modalIn .3s ease;position:relative;
+}
+.rules-modal-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--accent);margin-bottom:4px;}
+.rules-modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.rule-big{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.rule-big:last-child{border:none;}
+.rule-num{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--border);flex-shrink:0;line-height:1;}
+.rule-content .rule-heading{font-size:14px;font-weight:700;margin-bottom:3px;}
+.rule-content .rule-desc{font-size:12px;color:var(--muted);line-height:1.4;}
+
+/* ── Mobile ── */
+@media(max-width:900px){
+  body{
+    grid-template-columns:1fr;
+    grid-template-rows:auto 1fr auto;
+    overflow:hidden;
+  }
+  .left-sidebar,.right-sidebar{display:none;}
+  .chat-wrap{grid-column:1;grid-row:2;}
+  .topbar-center{display:none;}
+  .bottom-ticker{display:none;}
+}
+</style>
 </head>
 <body>
 
-    <iframe src="iframe-groupchatroom.html" class="app-frame"></iframe>
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div class="topbar-logo">StrangerToStranger</div>
+  <div class="topbar-center">
+    <span class="top-tag"><i class="fa-solid fa-globe" style="margin-right:5px;"></i>Global Chat Room</span>
+    <div class="live-dot">LIVE</div>
+    <span class="top-tag"><i class="fa-solid fa-shield-halved" style="margin-right:5px;color:#3ddc84;"></i>Moderated</span>
+  </div>
+  <div class="topbar-right">
+    <button class="rules-btn" onclick="openRules()"><i class="fa-solid fa-book" style="margin-right:6px;"></i>Rules</button>
+    <button class="report-btn" onclick="openReport()"><i class="fa-solid fa-flag" style="margin-right:6px;"></i>Report User</button>
+  </div>
+</div>
 
+<!-- ── Left Sidebar ── -->
+<div class="left-sidebar">
+
+  <!-- Stats -->
+  <div class="stats-card">
+    <div class="stats-title"><i class="fa-solid fa-chart-bar" style="margin-right:5px;"></i>Live Stats</div>
+    <div class="stat-row"><span class="stat-label">Online Now</span><span class="stat-val" id="statOnline">—</span></div>
+    <div class="stat-row"><span class="stat-label">Today's Chats</span><span class="stat-val">12.4K</span></div>
+    <div class="stat-row"><span class="stat-label">Countries</span><span class="stat-val">47</span></div>
+    <div class="stat-row"><span class="stat-label">Uptime</span><span class="stat-val">99.9%</span></div>
+  </div>
+
+  <!-- Ad 1 -->
+  <div class="ad-card">
+    <div class="ad-label">Sponsored</div>
+    <div class="ad-inner">
+      <div class="ad-gaming" onclick="void(0)">
+        <div class="ad-title">NEXUS ARENA</div>
+        <div class="ad-sub">Battle Royale • 10M Players</div>
+        <div class="ad-cta">Play Free →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ad 2 -->
+  <div class="ad-card">
+    <div class="ad-label">Advertisement</div>
+    <div class="ad-inner">
+      <div class="ad-crypto" onclick="void(0)">
+        <div class="coin">₿</div>
+        <div class="ad-title">CryptoVault Pro</div>
+        <div class="ad-sub">Trade smarter. Earn faster.</div>
+        <div class="ad-cta">Start Trading →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ad 3 -->
+  <div class="ad-card">
+    <div class="ad-label">Advertisement</div>
+    <div class="ad-inner">
+      <div class="ad-vpn" onclick="void(0)">
+        <div class="shield">🛡️</div>
+        <div class="ad-title">SafeNet VPN</div>
+        <div class="ad-sub">Stay anonymous. Stay safe.</div>
+        <div class="ad-cta">Get Protected →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules mini -->
+  <div class="rules-card">
+    <div class="rules-title"><i class="fa-solid fa-gavel" style="margin-right:5px;"></i>Quick Rules</div>
+    <div class="rule-item"><i class="fa-solid fa-circle-check"></i>No hate speech</div>
+    <div class="rule-item"><i class="fa-solid fa-circle-check"></i>No spam or flooding</div>
+    <div class="rule-item"><i class="fa-solid fa-circle-check"></i>18+ content banned</div>
+    <div class="rule-item"><i class="fa-solid fa-circle-check"></i>Respect all users</div>
+    <div class="rule-item"><i class="fa-solid fa-circle-check"></i>No personal info sharing</div>
+  </div>
+
+</div>
+
+<!-- ── Chat Frame ── -->
+<div class="chat-wrap">
+  <iframe src="iframe-groupchatroom.html" allow="microphone"></iframe>
+</div>
+
+<!-- ── Right Sidebar ── -->
+<div class="right-sidebar">
+
+  <!-- Ad 4 -->
+  <div class="ad-card">
+    <div class="ad-label">Sponsored</div>
+    <div class="ad-inner">
+      <div class="ad-dating" onclick="void(0)">
+        <div class="heart">💝</div>
+        <div class="ad-title">FindYourMatch</div>
+        <div class="ad-sub">Meet real people near you</div>
+        <div class="ad-cta">Join Free →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ad 5 -->
+  <div class="ad-card">
+    <div class="ad-label">Advertisement</div>
+    <div class="ad-inner">
+      <div class="ad-app" onclick="void(0)">
+        <div class="app-icon">🎵</div>
+        <div class="ad-title">BeatSync Music</div>
+        <div class="ad-sub">50M songs. Offline mode.</div>
+        <div class="ad-cta">Try Free →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ad 6 -->
+  <div class="ad-card">
+    <div class="ad-label">Advertisement</div>
+    <div class="ad-inner">
+      <div class="ad-gaming" onclick="void(0)" style="background:linear-gradient(135deg,#0d3b1e,#1a6b37);">
+        <div class="ad-title" style="color:#4ade80;">EduLearn Pro</div>
+        <div class="ad-sub">Learn anything. Anytime.</div>
+        <div class="ad-cta" style="background:linear-gradient(90deg,#16a34a,#15803d);">Start Learning →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Online counter widget -->
+  <div class="stats-card">
+    <div class="stats-title"><i class="fa-solid fa-fire" style="margin-right:5px;color:#ff6b35;"></i>Trending</div>
+    <div class="rule-item"><i class="fa-brands fa-discord" style="color:#5865f2;"></i>#global-chat</div>
+    <div class="rule-item"><i class="fa-solid fa-hashtag" style="color:var(--accent);"></i>StrangerVibes</div>
+    <div class="rule-item"><i class="fa-solid fa-hashtag" style="color:var(--accent2);"></i>RandomTalk</div>
+    <div class="rule-item"><i class="fa-solid fa-star" style="color:var(--yellow);"></i>24/7 Active</div>
+  </div>
+
+  <!-- Ad 7 -->
+  <div class="ad-card">
+    <div class="ad-label">Sponsored</div>
+    <div class="ad-inner">
+      <div class="ad-crypto" onclick="void(0)" style="background:linear-gradient(135deg,#1a0533,#2d0f4e);border-color:rgba(168,85,247,0.2);">
+        <div class="coin" style="color:#a855f7;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">NFT DROP</div>
+        <div class="ad-title" style="color:#a855f7;">CryptoArt Studio</div>
+        <div class="ad-sub">Mint your first NFT free</div>
+        <div class="ad-cta" style="background:linear-gradient(90deg,#7c3aed,#a855f7);">Mint Now →</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Bottom Bar ── -->
+<div class="bottom-bar">
+  <div class="bottom-ticker">
+    <span class="ticker-label">NEWS</span>
+    <span class="ticker-text">Welcome to StrangerToStranger 2026 — Chat anonymously with people from around the world — No registration required — Stay safe, be kind — Report any abuse using the Report button — Your privacy is protected — Enjoy chatting! 🌍</span>
+  </div>
+  <div class="bottom-right">
+    <a class="bottom-link" href="#">Privacy Policy</a>
+    <a class="bottom-link" href="#">Terms</a>
+    <a class="bottom-link" href="#">Contact</a>
+    <span style="color:var(--muted);font-size:11px;">© 2026 StrangerToStranger</span>
+  </div>
+</div>
+
+<!-- ── Report Modal ── -->
+<div class="modal-overlay" id="reportModal">
+  <div class="report-modal">
+    <button class="modal-close" onclick="closeReport()">×</button>
+    <div class="modal-icon">🚩</div>
+    <div class="modal-title">Report a User</div>
+    <div class="modal-sub">Aapki report seedha hamare moderation team ke Discord channel mein jayegi. Sahi information dijiye.</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Reported Username *</label>
+        <input type="text" class="form-input" id="reportedUser" placeholder="Jiska report karna hai"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Aapka Username *</label>
+        <input type="text" class="form-input" id="reporterUser" placeholder="Aapka username"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Aapka Email (Optional)</label>
+      <input type="email" class="form-input" id="reporterEmail" placeholder="followup ke liye"/>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Report Category *</label>
+      <select class="form-select form-input" id="reportCategory">
+        <option value="">— Category chunein —</option>
+        <option value="Hate Speech / Abuse">Hate Speech / Abuse</option>
+        <option value="Spam / Flooding">Spam / Flooding</option>
+        <option value="Sexual / NSFW Content">Sexual / NSFW Content</option>
+        <option value="Harassment / Bullying">Harassment / Bullying</option>
+        <option value="Fake Identity">Fake Identity</option>
+        <option value="Scam / Phishing">Scam / Phishing</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Kya hua? Batayein *</label>
+      <textarea class="form-textarea" id="reportReason" placeholder="Poori baat likhein — kya kiya usne, kab hua, koi message screenshot ho to describe karein..."></textarea>
+    </div>
+
+    <button class="submit-report-btn" id="submitReportBtn" onclick="submitReport()">
+      <i class="fa-solid fa-paper-plane"></i> Report Bhejo Discord Par
+    </button>
+    <div id="reportStatus"></div>
+  </div>
+</div>
+
+<!-- ── Rules Modal ── -->
+<div class="modal-overlay" id="rulesModal">
+  <div class="rules-modal">
+    <button class="modal-close" onclick="closeRules()">×</button>
+    <div class="modal-title" style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--accent);margin-bottom:4px;">Chat Rules</div>
+    <div class="modal-sub" style="font-size:13px;color:var(--muted);margin-bottom:20px;">Inhe follow karo — violation par permanent ban milega.</div>
+
+    <div class="rule-big">
+      <div class="rule-num">01</div>
+      <div class="rule-content">
+        <div class="rule-heading">No Hate Speech</div>
+        <div class="rule-desc">Kisi bhi religion, caste, gender ya race ke against abusive language allowed nahi hai.</div>
+      </div>
+    </div>
+    <div class="rule-big">
+      <div class="rule-num">02</div>
+      <div class="rule-content">
+        <div class="rule-heading">No NSFW / 18+ Content</div>
+        <div class="rule-desc">Sexual, violent ya gore content bilkul banned hai. Immediate permanent ban milega.</div>
+      </div>
+    </div>
+    <div class="rule-big">
+      <div class="rule-num">03</div>
+      <div class="rule-content">
+        <div class="rule-heading">No Spam or Flooding</div>
+        <div class="rule-desc">Ek hi message baar baar mat bhejo. Links ya ads spam mana jayega.</div>
+      </div>
+    </div>
+    <div class="rule-big">
+      <div class="rule-num">04</div>
+      <div class="rule-content">
+        <div class="rule-heading">Personal Info Share Mat Karo</div>
+        <div class="rule-desc">Apna ya kisi ka phone number, address ya private details share karna mana hai.</div>
+      </div>
+    </div>
+    <div class="rule-big">
+      <div class="rule-num">05</div>
+      <div class="rule-content">
+        <div class="rule-heading">Respect Everyone</div>
+        <div class="rule-desc">Sabse izzat se baat karo. Harassment ya bullying tolerate nahi ki jayegi.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DISCORD WEBHOOK — Apna webhook URL yahan paste karein ──
+// Discord mein: Server Settings → Integrations → Webhooks → New Webhook → Copy URL
+const DISCORD_WEBHOOK_URL = 'YOUR_DISCORD_WEBHOOK_URL_HERE';
+
+// ── Report Modal ──
+function openReport(){ document.getElementById('reportModal').classList.add('open'); }
+function closeReport(){ document.getElementById('reportModal').classList.remove('open'); document.getElementById('reportStatus').textContent=''; }
+
+// ── Rules Modal ──
+function openRules(){ document.getElementById('rulesModal').classList.add('open'); }
+function closeRules(){ document.getElementById('rulesModal').classList.remove('open'); }
+
+// ── Close on outside click ──
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if(e.target === overlay){
+      overlay.classList.remove('open');
+      document.getElementById('reportStatus').textContent='';
+    }
+  });
+});
+
+// ── ESC to close ──
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape'){
+    document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));
+  }
+});
+
+// ── Submit Report to Discord ──
+async function submitReport(){
+  const reportedUser = document.getElementById('reportedUser').value.trim();
+  const reporterUser = document.getElementById('reporterUser').value.trim();
+  const reporterEmail = document.getElementById('reporterEmail').value.trim();
+  const category = document.getElementById('reportCategory').value;
+  const reason = document.getElementById('reportReason').value.trim();
+  const statusEl = document.getElementById('reportStatus');
+  const btn = document.getElementById('submitReportBtn');
+
+  if(!reportedUser){ statusEl.style.color='#ff3c5f'; statusEl.textContent='⚠️ Reported user ka naam zaroori hai!'; return; }
+  if(!reporterUser){ statusEl.style.color='#ff3c5f'; statusEl.textContent='⚠️ Aapka username zaroori hai!'; return; }
+  if(!category){ statusEl.style.color='#ff3c5f'; statusEl.textContent='⚠️ Category chunein!'; return; }
+  if(!reason){ statusEl.style.color='#ff3c5f'; statusEl.textContent='⚠️ Reason likhna zaroori hai!'; return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Bhej rahe hain...';
+
+  const embed = {
+    username: 'Report System 🚨',
+    avatar_url: 'https://cdn-icons-png.flaticon.com/512/1828/1828843.png',
+    embeds: [{
+      title: '🚨 New User Report',
+      color: 0xff3c5f,
+      fields: [
+        { name: '🎯 Reported User', value: `\`${reportedUser}\``, inline: true },
+        { name: '👤 Reporter', value: `\`${reporterUser}\``, inline: true },
+        { name: '📧 Reporter Email', value: reporterEmail || '`Not provided`', inline: false },
+        { name: '📂 Category', value: `\`${category}\``, inline: false },
+        { name: '📝 Reason', value: reason.substring(0, 1000), inline: false },
+      ],
+      footer: { text: 'StrangerToStranger Report System • 2026' },
+      timestamp: new Date().toISOString()
+    }]
+  };
+
+  try {
+    const res = await fetch(DISCORD_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(embed)
+    });
+
+    if(res.ok){
+      statusEl.style.color = '#3ddc84';
+      statusEl.textContent = '✅ Report successfully Discord par bhej di gayi! Hum jaldi action lenge.';
+      // Clear form
+      document.getElementById('reportedUser').value='';
+      document.getElementById('reporterUser').value='';
+      document.getElementById('reporterEmail').value='';
+      document.getElementById('reportCategory').value='';
+      document.getElementById('reportReason').value='';
+      setTimeout(closeReport, 3000);
+    } else {
+      statusEl.style.color='#ff3c5f';
+      statusEl.textContent='❌ Bhejne mein problem hui. Webhook URL check karein.';
+    }
+  } catch(err) {
+    statusEl.style.color='#ff3c5f';
+    statusEl.textContent='❌ Network error. Internet check karein.';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Report Bhejo Discord Par';
+}
+
+// ── Live online count (from iframe postMessage if needed) ──
+let fakeOnline = Math.floor(Math.random()*30)+15;
+document.getElementById('statOnline').textContent = fakeOnline;
+setInterval(()=>{
+  fakeOnline += Math.floor(Math.random()*3)-1;
+  fakeOnline = Math.max(10, Math.min(fakeOnline, 80));
+  document.getElementById('statOnline').textContent = fakeOnline;
+}, 5000);
+</script>
 </body>
 </html>
