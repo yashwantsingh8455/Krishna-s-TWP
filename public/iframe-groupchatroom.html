@@ -163,7 +163,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 #settingsDrawer.open{display:flex;}
 .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border);font-weight:700;font-size:15px;}
 .drawer-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;}
-.drawer-body{padding:20px;display:flex;flex-direction:column;gap:16px;}
+.drawer-body{padding:20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;}
 .drawer-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;font-weight:700;}
 .drawer-input{width:100%;background:var(--input);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 14px;font-size:14px;font-family:inherit;outline:none;}
 .drawer-input:focus{border-color:rgba(108,99,255,.5);}
@@ -193,6 +193,58 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 /* ── Announcement ─────────────────────────────────── */
 #announcementBanner{display:none;position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:9000;background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 8px 30px rgba(108,99,255,0.5);max-width:90vw;text-align:center;}
 
+/* ══════════════════════════════════════════
+   DM PANEL - Full Screen Overlay
+   ══════════════════════════════════════════ */
+#dmPanel{display:none;position:absolute;inset:0;background:var(--bg);z-index:350;flex-direction:row;}
+#dmPanel.open{display:flex;}
+
+/* DM Left: conversation list */
+.dm-sidebar{width:260px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+.dm-sidebar-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.dm-sidebar-title{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;}
+.dm-close-btn{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
+.dm-search-wrap{padding:10px 12px;border-bottom:1px solid var(--border);}
+.dm-search-input{width:100%;background:var(--input);border:1px solid var(--border);border-radius:10px;padding:9px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;}
+.dm-search-input:focus{border-color:rgba(108,99,255,.5);}
+.dm-user-list{flex:1;overflow-y:auto;padding:8px;}
+.dm-user-list::-webkit-scrollbar{width:4px;}
+.dm-user-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);}
+.dm-user-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.2s;margin-bottom:2px;border-left:3px solid transparent;position:relative;}
+.dm-user-item:hover{background:rgba(255,255,255,0.05);}
+.dm-user-item.active{background:rgba(108,99,255,0.15);border-left-color:var(--accent);}
+.dm-user-item .unread-dot{position:absolute;top:8px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--accent2);display:none;}
+.dm-user-item.has-unread .unread-dot{display:block;}
+.dm-user-avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;}
+.dm-user-info{flex:1;min-width:0;}
+.dm-user-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dm-user-preview{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dm-empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 16px;}
+
+/* DM Right: chat window */
+.dm-chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.dm-chat-header{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--sidebar);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.dm-chat-header .dm-user-avatar{width:38px;height:38px;border-radius:10px;}
+.dm-chat-header-info{flex:1;}
+.dm-chat-header-name{font-weight:700;font-size:15px;}
+.dm-chat-header-status{font-size:11px;color:var(--green);}
+.dm-chat-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--muted);}
+.dm-chat-placeholder i{font-size:48px;opacity:.2;}
+.dm-chat-placeholder p{font-size:14px;}
+.dm-messages{flex:1;overflow-y:auto;padding:16px 20px;scroll-behavior:smooth;}
+.dm-messages::-webkit-scrollbar{width:6px;}
+.dm-messages::-webkit-scrollbar-thumb{background:rgba(108,99,255,0.3);border-radius:6px;}
+.dm-input-area{border-top:1px solid var(--border);background:var(--panel);padding:10px 16px 12px;flex-shrink:0;}
+.dm-input-row{display:flex;align-items:flex-end;gap:10px;}
+.dm-input-box{flex:1;background:var(--input);border:1px solid var(--border);border-radius:14px;display:flex;align-items:flex-end;padding:8px 12px;gap:6px;transition:border-color .2s;}
+.dm-input-box:focus-within{border-color:rgba(108,99,255,0.5);}
+#dmMsgInput{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:15px;font-family:inherit;resize:none;max-height:100px;min-height:24px;line-height:1.5;overflow-y:auto;padding:2px 0;}
+#dmMsgInput::placeholder{color:var(--muted);}
+
+/* DM Notification badge on tab */
+.dm-tab-badge{background:var(--accent2);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;margin-left:4px;display:none;}
+.dm-tab-badge.show{display:inline-block;}
+
 /* ── Mobile Bottom Nav (5 Tabs) ──────────────────── */
 #mobileBottom{display:none;background:var(--sidebar);border-top:1px solid var(--border);padding:0;justify-content:space-around;align-items:stretch;flex-shrink:0;height:56px;}
 .mob-btn{background:none;border:none;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:16px;padding:0 8px;transition:.2s;flex:1;border-right:1px solid var(--border);position:relative;}
@@ -200,21 +252,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .mob-btn span{font-size:9px;font-weight:600;font-family:inherit;white-space:nowrap;}
 .mob-btn.active{color:var(--accent);background:rgba(108,99,255,0.1);}
 .mob-btn:hover{color:var(--accent);}
+.mob-badge{position:absolute;top:6px;right:12px;width:8px;height:8px;border-radius:50%;background:var(--accent2);display:none;}
+.mob-badge.show{display:block;}
 .sidebar-backdrop{display:none;position:fixed;inset:0;z-index:799;background:rgba(0,0,0,0.5);}
 .sidebar-backdrop.open{display:block;}
 
-/* Rules & Report Pages */
-#rulesPage,#reportPage{display:none;position:absolute;inset:0;background:var(--bg);z-index:350;flex-direction:column;overflow-y:auto;}
-#rulesPage.open,#reportPage.open{display:flex;}
+/* Report Page */
+#reportPage{display:none;position:absolute;inset:0;background:var(--bg);z-index:350;flex-direction:column;overflow-y:auto;}
+#reportPage.open{display:flex;}
 .page-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border);background:var(--sidebar);font-weight:700;font-size:16px;flex-shrink:0;}
 .page-close{background:none;border:none;color:var(--text);font-size:24px;cursor:pointer;}
 .page-content{flex:1;padding:20px;overflow-y:auto;}
-.rules-section{margin-bottom:24px;}
-.rules-section h3{color:var(--accent);margin-bottom:10px;font-size:16px;}
-.rules-section ol{margin-left:20px;color:var(--text);line-height:1.8;font-size:14px;}
-.rules-section li{margin-bottom:10px;}
-
-/* Report Form */
 .report-form{display:flex;flex-direction:column;gap:16px;max-width:500px;}
 .form-field{display:flex;flex-direction:column;gap:8px;}
 .form-field label{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
@@ -225,26 +273,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .submit-report-btn:hover{opacity:.9;}
 .report-success{display:none;background:rgba(61,220,132,0.15);border:1px solid rgba(61,220,132,0.3);color:var(--green);padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:16px;}
 
-/* DM List & Chat */
-#dmList{display:none;position:absolute;inset:0;background:var(--bg);z-index:350;flex-direction:column;}
-#dmList.open{display:flex;}
-.dm-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border);background:var(--sidebar);font-weight:700;font-size:15px;}
-.dm-search{padding:12px 16px;border-bottom:1px solid var(--border);}
-.dm-search-input{width:100%;background:var(--input);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;}
-.dm-search-input:focus{border-color:rgba(108,99,255,.5);}
-.dm-list{flex:1;overflow-y:auto;padding:8px;}
-.dm-item{padding:12px 16px;border-radius:10px;cursor:pointer;transition:.2s;margin-bottom:4px;border-left:3px solid transparent;}
-.dm-item:hover{background:rgba(255,255,255,0.05);}
-.dm-item.active{background:rgba(108,99,255,0.15);border-left-color:var(--accent);}
-.dm-item-name{font-size:13px;font-weight:600;margin-bottom:2px;}
-.dm-item-bio{font-size:11px;color:var(--muted);}
-.dm-chat{display:none;position:fixed;inset:0;z-index:400;background:var(--bg);flex-direction:column;}
-.dm-chat.open{display:flex;}
-
 @media(max-width:768px){
   .sidebar{display:none;}
   .sidebar.mobile-open{display:flex;position:fixed;top:0;left:0;bottom:0;z-index:800;width:270px;box-shadow:8px 0 30px rgba(0,0,0,0.5);}
-  #mobileBottom{display:flex; margin-bottom: 16px;}
+  #mobileBottom{display:flex;margin-bottom:env(safe-area-inset-bottom,0);}
   .topbar{padding:0 12px;height:48px;}
   .topbar-logo{font-size:15px;}
   .topbar-right{gap:6px;}
@@ -261,6 +293,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   .input-row{gap:8px;}
   .send-btn{width:40px;height:40px;font-size:16px;}
   #msgInput{font-size:14px;}
+  /* DM panel mobile */
+  .dm-sidebar{width:100%;position:absolute;inset:0;z-index:2;background:var(--sidebar);}
+  .dm-sidebar.dm-chat-open{display:none;}
+  .dm-chat-area{position:absolute;inset:0;z-index:3;background:var(--bg);}
+  .dm-chat-area.hidden{display:none;}
 }
 </style>
 </head>
@@ -295,7 +332,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     </div>
     <div class="topbar-right">
       <div class="online-badge"><span class="dot"></span><span id="onlineCount">0</span> online</div>
-      <button class="icon-btn" onclick="toggleSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
     </div>
   </div>
 
@@ -311,28 +347,26 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <div><div class="drawer-label">Update Username</div><input type="text" id="updateName" class="drawer-input" placeholder="New username" maxlength="20"/></div>
         <div><div class="drawer-label">Update Bio / Interests</div><input type="text" id="updateBio" class="drawer-input" placeholder="e.g. Gaming, Music" maxlength="30"/></div>
         <button class="drawer-save" onclick="saveSettings()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i>Save Changes</button>
-        <hr style="border:none;border-top:1px solid var(--border);margin:10px 0;"/>
+        <hr style="border:none;border-top:1px solid var(--border);margin:4px 0;"/>
         <button class="drawer-save" onclick="logout()" style="background:linear-gradient(135deg,#ff6584,#ff8a65);"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px;"></i>Logout</button>
       </div>
     </div>
 
-
-
     <!-- Report User Page -->
     <div id="reportPage">
       <div class="page-header">
-        <!-- <span><i class="fa-solid fa-flag" style="color:var(--accent2);margin-right:8px;"></i>Report User</span> -->
+        <span><i class="fa-solid fa-flag" style="color:var(--accent2);margin-right:8px;"></i>Report User</span>
         <button class="page-close" onclick="closePage('reportPage')">×</button>
       </div>
       <div class="page-content">
-        <div class="report-success" id="reportSuccess">✅ Report submitted successfully! Our team will review it shortly.</div>
+        <div class="report-success" id="reportSuccess">✅ Report submitted! Our team will review it shortly.</div>
         <div class="report-form">
           <div class="form-field">
             <label>Username to Report</label>
-            <input type="text" id="reportUsername" placeholder="Enter the username you want to report" maxlength="20"/>
+            <input type="text" id="reportUsername" placeholder="Enter the username" maxlength="20"/>
           </div>
           <div class="form-field">
-            <label>Reason for Report</label>
+            <label>Reason</label>
             <select id="reportReason">
               <option value="">Select a reason...</option>
               <option value="harassment">Harassment or Bullying</option>
@@ -346,44 +380,63 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
             </select>
           </div>
           <div class="form-field">
-            <label>Detailed Description</label>
-            <textarea id="reportDescription" placeholder="Please describe what happened and provide any relevant details..." maxlength="500"></textarea>
+            <label>Description</label>
+            <textarea id="reportDescription" placeholder="Describe what happened..." maxlength="500"></textarea>
           </div>
+          <button class="submit-report-btn" onclick="submitReport()"><i class="fa-solid fa-flag" style="margin-right:6px;"></i>Submit Report</button>
         </div>
       </div>
     </div>
 
-    <!-- DM List -->
-    <div id="dmList">
-      <div class="dm-header">
-        <span><i class="fa-solid fa-comment-dots" style="color:var(--accent);margin-right:8px;"></i>Messages</span>
-        <button class="page-close" onclick="closeDMList()">×</button>
+    <!-- ══ DM PANEL ══════════════════════════════════ -->
+    <div id="dmPanel">
+      <!-- Left: User List -->
+      <div class="dm-sidebar" id="dmSidebar">
+        <div class="dm-sidebar-header">
+          <div class="dm-sidebar-title">
+            <i class="fa-solid fa-comment-dots" style="color:var(--accent);"></i>
+            Direct Messages
+          </div>
+          <button class="dm-close-btn" onclick="closeDMPanel()">×</button>
+        </div>
+        <div class="dm-search-wrap">
+          <input type="text" class="dm-search-input" id="dmSearchInput" placeholder="Search users…" autocomplete="off" oninput="renderDMUserList()"/>
+        </div>
+        <div class="dm-user-list" id="dmUserList">
+          <div class="dm-empty"><i class="fa-solid fa-users" style="font-size:28px;margin-bottom:8px;opacity:.3;display:block;"></i>No users online yet</div>
+        </div>
       </div>
-      <div class="dm-search">
-        <input type="text" class="dm-search-input" id="dmSearchInput" placeholder="Search for a user..." autocomplete="off"/>
-      </div>
-      <div class="dm-list" id="dmListContainer"></div>
-    </div>
 
-    <!-- DM Chat Window -->
-    <div id="dmChat" class="dm-chat">
-      <div class="page-header">
-        <span id="dmChatName"></span>
-        <button class="page-close" onclick="closeDMChat()">×</button>
-      </div>
-      <div id="dmChatWindow" class="chat-window"></div>
-      <div class="input-area">
-        <div class="input-row">
-          <div class="input-box">
-            <textarea id="dmInput" placeholder="Type a message…" rows="1"></textarea>
-            <div class="input-icons">
-              <button class="input-icon-btn" id="dmEmojiBtn" title="Emoji"><i class="fa-regular fa-face-smile"></i></button>
+      <!-- Right: Active Chat -->
+      <div class="dm-chat-area hidden" id="dmChatArea">
+        <!-- Header -->
+        <div class="dm-chat-header" id="dmChatHeader">
+          <button style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;margin-right:4px;" onclick="closeDMChat()" title="Back"><i class="fa-solid fa-arrow-left"></i></button>
+          <div class="dm-user-avatar" id="dmChatAvatar" style="background:#6c63ff;color:#fff;font-weight:700;font-size:15px;"></div>
+          <div class="dm-chat-header-info">
+            <div class="dm-chat-header-name" id="dmChatName">—</div>
+            <div class="dm-chat-header-status">Online</div>
+          </div>
+        </div>
+        <!-- Messages -->
+        <div class="dm-messages" id="dmMessages">
+          <div class="dm-chat-placeholder" id="dmPlaceholder">
+            <i class="fa-regular fa-comments"></i>
+            <p>Start the conversation!</p>
+          </div>
+        </div>
+        <!-- Input -->
+        <div class="dm-input-area">
+          <div class="dm-input-row">
+            <div class="dm-input-box">
+              <textarea id="dmMsgInput" placeholder="Type a private message…" rows="1"></textarea>
             </div>
+            <button class="send-btn" id="dmSendBtn" onclick="sendDMMessage()"><i class="fa-solid fa-paper-plane"></i></button>
           </div>
-          <button class="send-btn" id="dmSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
       </div>
     </div>
+    <!-- ════════════════════════════════════════════════ -->
 
     <!-- Sidebar backdrop (mobile) -->
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
@@ -446,18 +499,21 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
   </div><!-- .main -->
 
-  <!-- Mobile Bottom Nav -->
+  <!-- Mobile Bottom Nav — Chat | Users | DMs | Report | Settings -->
   <div id="mobileBottom">
     <button class="mob-btn active" id="mobChatBtn" onclick="switchTab('chat')"><i class="fa-solid fa-comment"></i><span>Chat</span></button>
     <button class="mob-btn" id="mobUsersBtn" onclick="switchTab('users')"><i class="fa-solid fa-users"></i><span>Users</span></button>
-    <button class="mob-btn" id="mobRulesBtn" onclick="switchTab('rules')"><i class="fa-solid fa-scroll"></i><span>Rules</span></button>
+    <button class="mob-btn" id="mobDmsBtn" onclick="switchTab('dms')">
+      <i class="fa-solid fa-comment-dots"></i><span>DMs</span>
+      <div class="mob-badge" id="mobDmBadge"></div>
+    </button>
     <button class="mob-btn" id="mobReportBtn" onclick="switchTab('report')"><i class="fa-solid fa-flag"></i><span>Report</span></button>
     <button class="mob-btn" id="mobSettingsBtn" onclick="switchTab('settings')"><i class="fa-solid fa-gear"></i><span>Settings</span></button>
   </div>
 
 </div><!-- #app -->
 
-<!-- Media Preview Modal -->
+<!-- Modals -->
 <div class="modal-overlay" id="mediaModal">
   <div class="modal">
     <h3>📎 Preview & Send</h3>
@@ -469,7 +525,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
-<!-- Voice Preview Modal -->
 <div class="modal-overlay" id="voiceModal">
   <div class="modal">
     <h3>🎤 Voice Message Preview</h3>
@@ -482,11 +537,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
-<!-- Delete Confirm Modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal">
     <h3>Delete Message?</h3>
-    <p>This will remove the message for everyone in the chat. This action cannot be undone.</p>
+    <p>This will remove the message for everyone. This cannot be undone.</p>
     <div class="modal-btns">
       <button class="modal-btn cancel" onclick="closeDeleteModal()">Cancel</button>
       <button class="modal-btn danger" id="confirmDeleteBtn"><i class="fa-solid fa-trash" style="margin-right:5px;"></i>Delete</button>
@@ -494,7 +548,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
-<!-- Announcement Banner -->
 <div id="announcementBanner"></div>
 <audio id="notifSound" src="https://cdn.glitch.global/StrangertoStranger/sound.mp3?v=1234567890" preload="auto"></audio>
 
@@ -502,7 +555,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <script>
 'use strict';
 
-// ── Emoji Data ────────────────────────────────────────────────────────────────
+// ── Emoji Data ─────────────────────────────────────────────────────────────────
 const EMOJIS = {
   smileys:  ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','🤗','🤩','🤔','😐','😑','😶','🙄','😏','😣','😥','😮','🥱','😴','😜','🤪','😝','🤑','😎','🤓','🧐','😕','🙁','😦','😧','😨','😰','😢','😭','😱','😖','😞','😓','😩','😤','😡','😠','🤬','😈','👿','💀','🤡','👻','👽','🤖','🎃'],
   people:   ['👋','🤚','🖐','✋','🖖','👌','🤌','✌️','🤞','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','🫶','🙏','💪','💅','🤳','🧑','👦','👧','👱','👴','👵','👮','🧙','🧚','🧜','🧞','🧝','🥷','👲','🧕','🧔','👼','🎅','🧑‍💻','🧑‍🎨','🧑‍🎤','🧑‍🍳','🧑‍🔧','🧑‍🏫','🧑‍⚕️','🧑‍✈️','🧑‍🚒','🧑‍🌾','💏','💑','👪'],
@@ -522,11 +575,15 @@ let mediaRecorder = null;
 let audioChunks   = [];
 let pendingDeleteId = null;
 let pendingMediaData = null;
-let pendingVoiceBlob = null;
-let emojiOpen = false;
-let gifOpen   = false;
 let typingTimer;
 const ADMIN = 'Yashwant';
+
+// ── DM State ───────────────────────────────────────────────────────────────────
+let allUsers = [];          // full user list from server
+let dmConversations = {};   // { username: [{sender, message, createdAt}] }
+let activeDMUser = null;    // currently open DM chat
+let dmUnread = {};          // { username: count }
+let dmPanelOpen = false;
 
 // ── DOM ────────────────────────────────────────────────────────────────────────
 const loginOverlay  = document.getElementById('loginOverlay');
@@ -552,30 +609,18 @@ const gifGrid       = document.getElementById('gifGrid');
 const gifSearchInput= document.getElementById('gifSearchInput');
 const fileInput     = document.getElementById('fileInput');
 const voiceBtnEl    = document.getElementById('voiceBtn');
+const dmPanel       = document.getElementById('dmPanel');
+const dmSidebar     = document.getElementById('dmSidebar');
+const dmChatArea    = document.getElementById('dmChatArea');
+const dmMessages    = document.getElementById('dmMessages');
+const dmMsgInput    = document.getElementById('dmMsgInput');
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2,5); }
-
-function escapeHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function scrollToBottom() {
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-}
-
-function playNotif() {
-  try {
-    const s = document.getElementById('notifSound');
-    s.currentTime = 0;
-    s.play().catch(()=>{});
-  } catch {}
-}
-
-function fmtTime(d) {
-  const dt = d ? new Date(d) : new Date();
-  return dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-}
+function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function scrollToBottom() { chatWindow.scrollTop = chatWindow.scrollHeight; }
+function playNotif() { try { const s=document.getElementById('notifSound'); s.currentTime=0; s.play().catch(()=>{}); } catch{} }
+function fmtTime(d) { const dt=d?new Date(d):new Date(); return dt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
 
 const AVATAR_COLORS = [
   ['#ff6584','#3d0018'],['#6c63ff','#1a1040'],['#3ddc84','#003d1e'],
@@ -583,13 +628,13 @@ const AVATAR_COLORS = [
   ['#a78bfa','#1e0050'],['#34d399','#003322']
 ];
 function avatarColor(name) {
-  const i = name.charCodeAt(0) % AVATAR_COLORS.length;
+  const i = (name||'?').charCodeAt(0) % AVATAR_COLORS.length;
   return { bg: AVATAR_COLORS[i][0], fg: '#fff' };
 }
 
 function closeAllPickers() {
-  emojiPicker.style.display = 'none'; emojiOpen = false;
-  gifPicker.style.display   = 'none'; gifOpen   = false;
+  emojiPicker.style.display = 'none';
+  gifPicker.style.display   = 'none';
 }
 
 // ── Auto-login ─────────────────────────────────────────────────────────────────
@@ -629,7 +674,7 @@ socket.on('duplicate', msg => {
   joinBtn.disabled = false; joinBtn.innerHTML = '<i class="fa-solid fa-bolt" style="margin-right:8px;"></i>Join Chat';
 });
 
-// ── History ────────────────────────────────────────────────────────────────────
+// ── History ─────────────────────────────────────────────────────────────────────
 socket.on('history', (messages) => {
   if (!messages || !messages.length) return;
   const div = document.createElement('div');
@@ -640,7 +685,7 @@ socket.on('history', (messages) => {
   scrollToBottom();
 });
 
-// ── System Messages ────────────────────────────────────────────────────────────
+// ── System Messages ─────────────────────────────────────────────────────────────
 socket.on('system message', (text) => {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'display:flex;justify-content:center;margin:6px 0;';
@@ -649,7 +694,7 @@ socket.on('system message', (text) => {
   scrollToBottom();
 });
 
-// ── Incoming Chat ──────────────────────────────────────────────────────────────
+// ── Incoming Chat ───────────────────────────────────────────────────────────────
 socket.on('chat message', (data) => {
   if (data.sender !== currentUser) {
     appendMessage(data, false);
@@ -662,15 +707,16 @@ socket.on('chat message', (data) => {
   }
 });
 
-// ── Delete ─────────────────────────────────────────────────────────────────────
+// ── Delete ──────────────────────────────────────────────────────────────────────
 socket.on('delete message', (id) => {
   const el = document.querySelector(`[data-msgid="${id}"]`);
   if (el) { el.style.opacity='0'; el.style.transition='.3s'; setTimeout(()=>el.remove(),300); }
 });
 
-// ── Users ──────────────────────────────────────────────────────────────────────
+// ── Users ───────────────────────────────────────────────────────────────────────
 socket.on('user list', (users) => {
-  onlineCount.textContent = users.length;
+  allUsers = users;
+  onlineCount.textContent  = users.length;
   sidebarCount.textContent = users.length;
   usersList.innerHTML = '';
   users.forEach(u => {
@@ -691,20 +737,19 @@ socket.on('user list', (users) => {
     item.onclick = () => { insertMention(name); closeSidebar(); };
     usersList.appendChild(item);
   });
+  // Refresh DM list if open
+  if (dmPanelOpen) renderDMUserList();
 });
 
-// ── Typing ─────────────────────────────────────────────────────────────────────
-msgInput.addEventListener('input', () => {
-  autoGrow();
-  socket.emit('typing', { user: currentUser });
-});
+// ── Typing ──────────────────────────────────────────────────────────────────────
+msgInput.addEventListener('input', () => { autoGrow(); socket.emit('typing', { user: currentUser }); });
 socket.on('typing', (data) => {
   typingEl.textContent = `${data.user} is typing…`;
   clearTimeout(typingTimer);
   typingTimer = setTimeout(() => typingEl.textContent='', 2000);
 });
 
-// ── Announcement ───────────────────────────────────────────────────────────────
+// ── Announcement ─────────────────────────────────────────────────────────────────
 socket.on('announcement', msg => {
   const b = document.getElementById('announcementBanner');
   b.textContent = '📢 ' + msg;
@@ -712,7 +757,7 @@ socket.on('announcement', msg => {
   setTimeout(() => b.style.display='none', 6000);
 });
 
-// ── VIP Update ─────────────────────────────────────────────────────────────────
+// ── VIP ───────────────────────────────────────────────────────────────────────────
 socket.on('vip_update', name => {
   if (name === currentUser.toLowerCase()) {
     const w = document.createElement('div');
@@ -737,7 +782,7 @@ function sendTextMessage() {
   msgInput.value = ''; autoGrow(); cancelReply(); scrollToBottom();
 }
 
-// ── Append Message ─────────────────────────────────────────────────────────────
+// ── Append Message (Group Chat) ─────────────────────────────────────────────────
 function appendMessage(data, isMe, isHistory) {
   const row = document.createElement('div');
   row.className = `msg-row ${isMe ? 'me' : 'other'}`;
@@ -746,17 +791,14 @@ function appendMessage(data, isMe, isHistory) {
   const col = avatarColor(data.sender || '?');
   const avatarLetter = (data.sender || '?').charAt(0).toUpperCase();
 
-  // Avatar
   const av = document.createElement('div');
   av.className = 'msg-avatar';
   av.style.cssText = `background:${col.bg};color:${col.fg};`;
   av.textContent = avatarLetter;
 
-  // Body
   const body = document.createElement('div');
   body.className = 'msg-body';
 
-  // Sender name (others only)
   if (!isMe) {
     const senderEl = document.createElement('div');
     senderEl.className = 'msg-sender';
@@ -764,36 +806,37 @@ function appendMessage(data, isMe, isHistory) {
     body.appendChild(senderEl);
   }
 
-  // Bubble
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
 
-  // Action buttons (reply + delete)
   const actions = document.createElement('div');
   actions.className = 'msg-actions';
 
   const replyActionBtn = document.createElement('button');
   replyActionBtn.className = 'msg-action-btn';
   replyActionBtn.innerHTML = '↩ Reply';
-  replyActionBtn.onclick = () => {
-    setReply(data.sender, data.type==='text' ? data.message : `sent a ${data.type}`);
-  };
+  replyActionBtn.onclick = () => setReply(data.sender, data.type==='text' ? data.message : `sent a ${data.type}`);
   actions.appendChild(replyActionBtn);
 
-  const isAdmin = currentUser === ADMIN;
-  if (isMe || isAdmin) {
+  // DM button on other's messages
+  if (!isMe) {
+    const dmActionBtn = document.createElement('button');
+    dmActionBtn.className = 'msg-action-btn';
+    dmActionBtn.innerHTML = '💬 DM';
+    dmActionBtn.onclick = () => openDMWithUser(data.sender);
+    actions.appendChild(dmActionBtn);
+  }
+
+  const isAdminUser = currentUser === ADMIN;
+  if (isMe || isAdminUser) {
     const delBtn = document.createElement('button');
     delBtn.className = 'msg-action-btn del';
     delBtn.innerHTML = '🗑';
-    delBtn.onclick = () => {
-      pendingDeleteId = data.id;
-      document.getElementById('deleteModal').classList.add('open');
-    };
+    delBtn.onclick = () => { pendingDeleteId = data.id; document.getElementById('deleteModal').classList.add('open'); };
     actions.appendChild(delBtn);
   }
   bubble.appendChild(actions);
 
-  // Reply block
   if (data.replyTo) {
     const rb = document.createElement('div');
     rb.className = 'reply-block';
@@ -801,54 +844,253 @@ function appendMessage(data, isMe, isHistory) {
     bubble.appendChild(rb);
   }
 
-  // Content
   const content = document.createElement('div');
   if (data.type === 'image') {
-    const img = document.createElement('img');
-    img.src = data.message; img.loading = 'lazy';
-    img.oncontextmenu = e=>e.preventDefault();
-    content.appendChild(img);
+    const img = document.createElement('img'); img.src = data.message; img.loading='lazy'; img.oncontextmenu=e=>e.preventDefault(); content.appendChild(img);
   } else if (data.type === 'video') {
-    const vid = document.createElement('video');
-    vid.src = data.message; vid.controls = true;
-    vid.setAttribute('controlsList','nodownload');
-    vid.oncontextmenu = e=>e.preventDefault();
-    content.appendChild(vid);
+    const vid = document.createElement('video'); vid.src = data.message; vid.controls=true; vid.setAttribute('controlsList','nodownload'); vid.oncontextmenu=e=>e.preventDefault(); content.appendChild(vid);
   } else if (data.type === 'audio') {
-    const aud = document.createElement('audio');
-    aud.src = data.message; aud.controls = true;
-    content.appendChild(aud);
+    const aud = document.createElement('audio'); aud.src = data.message; aud.controls=true; content.appendChild(aud);
   } else if (data.type === 'gif') {
-    const img = document.createElement('img');
-    img.src = data.message; img.className = 'gif-img'; img.loading = 'lazy';
-    img.alt = 'GIF'; img.oncontextmenu = e=>e.preventDefault();
-    content.appendChild(img);
+    const img = document.createElement('img'); img.src=data.message; img.className='gif-img'; img.loading='lazy'; img.alt='GIF'; img.oncontextmenu=e=>e.preventDefault(); content.appendChild(img);
   } else {
-    // Text with @mention highlighting
     const textEl = document.createElement('div');
-    const formatted = escapeHtml(data.message || '').replace(
-      /@([^@:\s]+):/g,
-      (_, n) => `<span style="color:var(--accent);font-weight:700;cursor:pointer;" onclick="insertMention('${n}')">@${n}:</span>`
-    );
+    const formatted = escapeHtml(data.message||'').replace(/@([^@:\s]+):/g, (_,n)=>`<span style="color:var(--accent);font-weight:700;cursor:pointer;" onclick="insertMention('${n}')">@${n}:</span>`);
     textEl.innerHTML = formatted;
     content.appendChild(textEl);
   }
   bubble.appendChild(content);
 
-  // Time
   const timeEl = document.createElement('div');
   timeEl.className = 'msg-time';
   timeEl.textContent = fmtTime(data.createdAt);
   body.appendChild(bubble);
   body.appendChild(timeEl);
 
-  // Assemble
-  if (isMe) {
-    row.appendChild(body); row.appendChild(av);
-  } else {
-    row.appendChild(av); row.appendChild(body);
-  }
+  if (isMe) { row.appendChild(body); row.appendChild(av); }
+  else       { row.appendChild(av);  row.appendChild(body); }
   chatWindow.appendChild(row);
+}
+
+// ══════════════════════════════════════════════════════
+//  PRIVATE MESSAGING SYSTEM
+// ══════════════════════════════════════════════════════
+
+// Open DM panel
+function openDMPanel() {
+  dmPanelOpen = true;
+  dmPanel.classList.add('open');
+  renderDMUserList();
+  // Reset unread for currently open DM
+  updateDMBadge();
+}
+
+function closeDMPanel() {
+  dmPanelOpen = false;
+  dmPanel.classList.remove('open');
+  closeDMChat();
+  // Switch back to chat tab on mobile
+  document.querySelectorAll('.mob-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mobChatBtn').classList.add('active');
+}
+
+// Open DM with specific user (from group chat DM button)
+function openDMWithUser(username) {
+  openDMPanel();
+  setTimeout(() => openDMChat(username), 50);
+}
+
+// Render user list in DM sidebar
+function renderDMUserList() {
+  const container = document.getElementById('dmUserList');
+  const search    = (document.getElementById('dmSearchInput').value || '').toLowerCase();
+  container.innerHTML = '';
+
+  const filtered = allUsers.filter(u => {
+    const name = typeof u==='object' ? u.name : u;
+    return name !== currentUser && (!search || name.toLowerCase().includes(search));
+  });
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="dm-empty"><i class="fa-solid fa-user-slash" style="font-size:24px;margin-bottom:6px;opacity:.3;display:block;"></i>No users found</div>';
+    return;
+  }
+
+  filtered.forEach(u => {
+    const name   = typeof u==='object' ? u.name : u;
+    const bio    = (u && u.bio) ? u.bio : 'No bio';
+    const isVip  = u && u.isVip;
+    const col    = avatarColor(name);
+    const unread = dmUnread[name] || 0;
+    const lastMsg = dmConversations[name] ? dmConversations[name][dmConversations[name].length-1] : null;
+
+    const item = document.createElement('div');
+    item.className = `dm-user-item${activeDMUser===name?' active':''}${unread>0?' has-unread':''}`;
+    item.innerHTML = `
+      <div class="dm-user-avatar" style="background:${col.bg};color:${col.fg};width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;">
+        ${escapeHtml(name.charAt(0).toUpperCase())}
+      </div>
+      <div class="dm-user-info">
+        <div class="dm-user-name">${escapeHtml(name)}${isVip?'<span class="vip-badge">💎</span>':''}</div>
+        <div class="dm-user-preview">${lastMsg ? escapeHtml((lastMsg.sender===currentUser?'You: ':'')+lastMsg.message.substring(0,30)) : escapeHtml(bio)}</div>
+      </div>
+      <div class="unread-dot"></div>`;
+    item.onclick = () => openDMChat(name);
+    container.appendChild(item);
+  });
+}
+
+// Open a specific DM conversation
+function openDMChat(username) {
+  activeDMUser = username;
+  dmUnread[username] = 0;
+  updateDMBadge();
+
+  // Mobile: show chat area, hide sidebar
+  dmSidebar.classList.add('dm-chat-open');
+  dmChatArea.classList.remove('hidden');
+
+  // Update header
+  const col = avatarColor(username);
+  document.getElementById('dmChatAvatar').textContent = username.charAt(0).toUpperCase();
+  document.getElementById('dmChatAvatar').style.cssText = `background:${col.bg};color:${col.fg};width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;`;
+  document.getElementById('dmChatName').textContent = username;
+
+  // Render messages
+  renderDMMessages();
+  renderDMUserList();
+  dmMsgInput.focus();
+}
+
+function closeDMChat() {
+  activeDMUser = null;
+  dmSidebar.classList.remove('dm-chat-open');
+  dmChatArea.classList.add('hidden');
+  renderDMUserList();
+}
+
+// Render messages in active DM chat
+function renderDMMessages() {
+  const placeholder = document.getElementById('dmPlaceholder');
+  dmMessages.innerHTML = '';
+  const msgs = dmConversations[activeDMUser] || [];
+
+  if (!msgs.length) {
+    placeholder.style.display = 'flex';
+    dmMessages.appendChild(placeholder);
+    return;
+  }
+  placeholder.style.display = 'none';
+
+  msgs.forEach(msg => {
+    const isMe = msg.sender === currentUser;
+    appendDMMessage(msg, isMe);
+  });
+}
+
+// Append single DM message bubble
+function appendDMMessage(data, isMe) {
+  const row = document.createElement('div');
+  row.className = `msg-row ${isMe?'me':'other'}`;
+
+  const col = avatarColor(data.sender||'?');
+  const av  = document.createElement('div');
+  av.className = 'msg-avatar';
+  av.style.cssText = `background:${col.bg};color:${col.fg};`;
+  av.textContent = (data.sender||'?').charAt(0).toUpperCase();
+
+  const body = document.createElement('div');
+  body.className = 'msg-body';
+
+  // Show sender name for received DMs
+  if (!isMe) {
+    const senderEl = document.createElement('div');
+    senderEl.className = 'msg-sender';
+    senderEl.textContent = data.sender;
+    body.appendChild(senderEl);
+  }
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  const textEl = document.createElement('div');
+  textEl.textContent = data.message;
+  bubble.appendChild(textEl);
+
+  const timeEl = document.createElement('div');
+  timeEl.className = 'msg-time';
+  timeEl.textContent = fmtTime(data.createdAt);
+
+  body.appendChild(bubble);
+  body.appendChild(timeEl);
+
+  if (isMe) { row.appendChild(body); row.appendChild(av); }
+  else       { row.appendChild(av);  row.appendChild(body); }
+
+  dmMessages.appendChild(row);
+  dmMessages.scrollTop = dmMessages.scrollHeight;
+}
+
+// Send DM message
+function sendDMMessage() {
+  const msg = dmMsgInput.value.trim();
+  if (!msg || !activeDMUser) return;
+
+  const data = {
+    id: genId(),
+    sender: currentUser,
+    receiver: activeDMUser,
+    message: msg,
+    createdAt: new Date()
+  };
+
+  socket.emit('private message', data);
+
+  if (!dmConversations[activeDMUser]) dmConversations[activeDMUser] = [];
+  dmConversations[activeDMUser].push(data);
+
+  appendDMMessage(data, true);
+  renderDMUserList();
+  dmMsgInput.value = '';
+  dmMsgInput.style.height = 'auto';
+}
+
+// DM send on Enter
+dmMsgInput.addEventListener('keydown', e => {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendDMMessage(); }
+});
+dmMsgInput.addEventListener('input', () => {
+  dmMsgInput.style.height = 'auto';
+  dmMsgInput.style.height = Math.min(dmMsgInput.scrollHeight, 100) + 'px';
+});
+
+// Receive incoming private message
+socket.on('private message', (data) => {
+  const other = data.sender === currentUser ? data.receiver : data.sender;
+  if (!dmConversations[other]) dmConversations[other] = [];
+  dmConversations[other].push(data);
+
+  // If this DM is currently open, append it live
+  if (data.sender !== currentUser && activeDMUser === data.sender && dmPanelOpen) {
+    appendDMMessage(data, false);
+    dmUnread[data.sender] = 0;
+  } else if (data.sender !== currentUser) {
+    // Increment unread
+    dmUnread[data.sender] = (dmUnread[data.sender] || 0) + 1;
+    playNotif();
+    if (document.hidden) {
+      document.title = `💬 DM from ${data.sender}!`;
+      setTimeout(() => document.title = 'TalkWithStrangers — Group Chat', 3000);
+    }
+  }
+  updateDMBadge();
+  if (dmPanelOpen) renderDMUserList();
+});
+
+function updateDMBadge() {
+  const total = Object.values(dmUnread).reduce((a,b)=>a+b,0);
+  const badge = document.getElementById('mobDmBadge');
+  if (total > 0) badge.classList.add('show');
+  else badge.classList.remove('show');
 }
 
 // ── Reply ──────────────────────────────────────────────────────────────────────
@@ -859,32 +1101,24 @@ function setReply(sender, message) {
   replyPreview.style.display = 'block';
   msgInput.focus();
 }
-function cancelReply() {
-  replyData = null;
-  replyPreview.style.display = 'none';
-}
+function cancelReply() { replyData = null; replyPreview.style.display = 'none'; }
 
 // ── Mention ────────────────────────────────────────────────────────────────────
 function insertMention(name) {
   const mention = `@${name}: `;
-  if (!msgInput.value.includes(mention)) {
-    msgInput.value += mention;
-    msgInput.focus(); autoGrow();
-  }
+  if (!msgInput.value.includes(mention)) { msgInput.value += mention; msgInput.focus(); autoGrow(); }
 }
 
 // ── Auto-grow ──────────────────────────────────────────────────────────────────
-function autoGrow() {
-  msgInput.style.height = 'auto';
-  msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + 'px';
-}
+function autoGrow() { msgInput.style.height='auto'; msgInput.style.height=Math.min(msgInput.scrollHeight,120)+'px'; }
 
-// ── Emoji Picker ───────────────────────────────────────────────────────────────
+// ── Emoji ──────────────────────────────────────────────────────────────────────
+let emojiOpen=false, gifOpen=false;
 buildEmojiGrid('smileys');
 
 document.getElementById('emojiToggleBtn').onclick = (e) => {
   e.stopPropagation();
-  gifPicker.style.display = 'none'; gifOpen = false;
+  gifPicker.style.display='none'; gifOpen=false;
   emojiOpen = !emojiOpen;
   emojiPicker.style.display = emojiOpen ? 'block' : 'none';
 };
@@ -899,450 +1133,194 @@ document.querySelectorAll('.emoji-tab').forEach(tab => {
 
 function buildEmojiGrid(cat) {
   emojiGrid.innerHTML = '';
-  (EMOJIS[cat] || []).forEach(e => {
+  (EMOJIS[cat]||[]).forEach(e => {
     const btn = document.createElement('button');
-    btn.className = 'emoji-btn'; btn.textContent = e;
-    btn.onclick = () => {
-      insertAtCursor(e);
-      emojiPicker.style.display = 'none'; emojiOpen = false;
-    };
+    btn.className='emoji-btn'; btn.textContent=e;
+    btn.onclick=()=>{ insertAtCursor(e); emojiPicker.style.display='none'; emojiOpen=false; };
     emojiGrid.appendChild(btn);
   });
 }
 
 function insertAtCursor(text) {
-  const s = msgInput.selectionStart, end = msgInput.selectionEnd;
-  msgInput.value = msgInput.value.substring(0,s) + text + msgInput.value.substring(end);
-  msgInput.selectionStart = msgInput.selectionEnd = s + text.length;
+  const s=msgInput.selectionStart, end=msgInput.selectionEnd;
+  msgInput.value = msgInput.value.substring(0,s)+text+msgInput.value.substring(end);
+  msgInput.selectionStart = msgInput.selectionEnd = s+text.length;
   msgInput.focus(); autoGrow();
 }
 
-// ── GIF Picker ─────────────────────────────────────────────────────────────────
+// ── GIF ────────────────────────────────────────────────────────────────────────
 document.getElementById('gifToggleBtn').onclick = (e) => {
   e.stopPropagation();
   emojiPicker.style.display='none'; emojiOpen=false;
   gifOpen = !gifOpen;
-  gifPicker.style.display = gifOpen ? 'block' : 'none';
-  if (gifOpen && gifGrid.children.length <= 1) fetchGifs('trending');
+  gifPicker.style.display = gifOpen?'block':'none';
+  if (gifOpen && gifGrid.children.length<=1) fetchGifs('trending');
 };
-document.getElementById('gifSearchBtn').onclick = () => fetchGifs(gifSearchInput.value.trim() || 'trending');
-gifSearchInput.addEventListener('keydown', e => { if(e.key==='Enter') fetchGifs(gifSearchInput.value.trim() || 'trending'); });
+document.getElementById('gifSearchBtn').onclick = () => fetchGifs(gifSearchInput.value.trim()||'trending');
+gifSearchInput.addEventListener('keydown', e => { if(e.key==='Enter') fetchGifs(gifSearchInput.value.trim()||'trending'); });
 
 async function fetchGifs(query) {
   gifGrid.innerHTML = '<div class="gif-loading">Loading…</div>';
-  // Replace with your own Tenor API key in production
   const key = 'AIzaSyAyimkuYQYF_FXVALexPZHerc7CMoFpjPc';
   try {
-    const url = query === 'trending'
+    const url = query==='trending'
       ? `https://tenor.googleapis.com/v2/featured?key=${key}&limit=16&media_filter=gif`
       : `https://tenor.googleapis.com/v2/search?key=${key}&q=${encodeURIComponent(query)}&limit=16&media_filter=gif`;
-    const res  = await fetch(url);
-    const data = await res.json();
-    gifGrid.innerHTML = '';
-    (data.results || []).forEach(item => {
-      const gifUrl = item.media_formats?.gif?.url || item.media_formats?.tinygif?.url;
-      if (!gifUrl) return;
-      const img = document.createElement('img');
-      img.src = gifUrl; img.loading = 'lazy'; img.alt = item.content_description || 'gif';
-      img.onclick = () => sendGif(gifUrl);
-      gifGrid.appendChild(img);
+    const res=await fetch(url); const data=await res.json();
+    gifGrid.innerHTML='';
+    (data.results||[]).forEach(item=>{
+      const gifUrl=item.media_formats?.gif?.url||item.media_formats?.tinygif?.url;
+      if(!gifUrl) return;
+      const img=document.createElement('img'); img.src=gifUrl; img.loading='lazy'; img.alt=item.content_description||'gif';
+      img.onclick=()=>sendGif(gifUrl); gifGrid.appendChild(img);
     });
-    if (!gifGrid.children.length) gifGrid.innerHTML = '<div class="gif-loading">No results found.</div>';
-  } catch {
-    gifGrid.innerHTML = '<div class="gif-loading">Failed to load GIFs. Check connection.</div>';
-  }
+    if(!gifGrid.children.length) gifGrid.innerHTML='<div class="gif-loading">No results found.</div>';
+  } catch { gifGrid.innerHTML='<div class="gif-loading">Failed to load GIFs.</div>'; }
 }
 
 function sendGif(url) {
-  const payload = { id:genId(), sender:currentUser, message:url, type:'gif', replyTo:replyData };
-  socket.emit('chat message', payload);
-  appendMessage(payload, true);
-  gifPicker.style.display='none'; gifOpen=false;
-  cancelReply(); scrollToBottom();
+  const payload={id:genId(),sender:currentUser,message:url,type:'gif',replyTo:replyData};
+  socket.emit('chat message',payload); appendMessage(payload,true);
+  gifPicker.style.display='none'; gifOpen=false; cancelReply(); scrollToBottom();
 }
 
-// ── File Upload (with preview) ─────────────────────────────────────────────────
-document.getElementById('fileBtn').onclick = () => fileInput.click();
-
-fileInput.onchange = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const type = file.type.startsWith('image') ? 'image' : 'video';
-  const reader = new FileReader();
-  reader.onload = (ev) => showMediaPreview(ev.target.result, type, file.name, file.size);
-  reader.readAsDataURL(file);
-  fileInput.value = '';
+// ── File Upload ────────────────────────────────────────────────────────────────
+document.getElementById('fileBtn').onclick = ()=>fileInput.click();
+fileInput.onchange = (e)=>{
+  const file=e.target.files[0]; if(!file) return;
+  const type=file.type.startsWith('image')?'image':'video';
+  const reader=new FileReader();
+  reader.onload=ev=>showMediaPreview(ev.target.result,type,file.name,file.size);
+  reader.readAsDataURL(file); fileInput.value='';
 };
 
-function showMediaPreview(dataUrl, type, name, size) {
-  const preview = document.getElementById('mediaPreview');
-  preview.innerHTML = '';
-  if (type === 'image') {
-    preview.innerHTML = `<img src="${dataUrl}" style="max-width:100%;border-radius:8px;max-height:260px;">`;
-  } else {
-    preview.innerHTML = `<video src="${dataUrl}" controls style="max-width:100%;border-radius:8px;max-height:260px;"></video>`;
-  }
-  if (name) {
-    preview.innerHTML += `<div class="file-info">${escapeHtml(name)} (${(size/1024).toFixed(1)} KB)</div>`;
-  }
-  pendingMediaData = { dataUrl, type };
+function showMediaPreview(dataUrl,type,name,size) {
+  const preview=document.getElementById('mediaPreview'); preview.innerHTML='';
+  if(type==='image') preview.innerHTML=`<img src="${dataUrl}" style="max-width:100%;border-radius:8px;max-height:260px;">`;
+  else               preview.innerHTML=`<video src="${dataUrl}" controls style="max-width:100%;border-radius:8px;max-height:260px;"></video>`;
+  if(name) preview.innerHTML+=`<div class="file-info">${escapeHtml(name)} (${(size/1024).toFixed(1)} KB)</div>`;
+  pendingMediaData={dataUrl,type};
   document.getElementById('mediaModal').classList.add('open');
-
-  document.getElementById('sendMediaBtn').onclick = () => {
-    const payload = { id:genId(), sender:currentUser, message:pendingMediaData.dataUrl, type:pendingMediaData.type, replyTo:replyData };
-    socket.emit('chat message', payload);
-    appendMessage(payload, true);
+  document.getElementById('sendMediaBtn').onclick=()=>{
+    const payload={id:genId(),sender:currentUser,message:pendingMediaData.dataUrl,type:pendingMediaData.type,replyTo:replyData};
+    socket.emit('chat message',payload); appendMessage(payload,true);
     closeMediaModal(); cancelReply(); scrollToBottom();
   };
 }
+function closeMediaModal(){ document.getElementById('mediaModal').classList.remove('open'); pendingMediaData=null; }
 
-function closeMediaModal() {
-  document.getElementById('mediaModal').classList.remove('open');
-  pendingMediaData = null;
-}
-
-// ── Voice Recording (with preview) ────────────────────────────────────────────
-voiceBtnEl.onclick = async () => {
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
-    voiceBtnEl.classList.remove('recording');
-    voiceBtnEl.title = 'Voice Message';
-    return;
+// ── Voice Recording ────────────────────────────────────────────────────────────
+voiceBtnEl.onclick = async()=>{
+  if(mediaRecorder&&mediaRecorder.state==='recording'){
+    mediaRecorder.stop(); voiceBtnEl.classList.remove('recording'); voiceBtnEl.title='Voice Message'; return;
   }
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-    mediaRecorder.onstop = () => {
-      stream.getTracks().forEach(t => t.stop());
-      const blob = new Blob(audioChunks, { type: 'audio/webm' });
-      const url  = URL.createObjectURL(blob);
-      // Show voice preview modal
-      const vPreview = document.getElementById('voicePreview');
-      vPreview.innerHTML = `<audio src="${url}" controls style="width:100%;"></audio>`;
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder=new MediaRecorder(stream); audioChunks=[];
+    mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);
+    mediaRecorder.onstop=()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      const blob=new Blob(audioChunks,{type:'audio/webm'});
+      const url=URL.createObjectURL(blob);
+      document.getElementById('voicePreview').innerHTML=`<audio src="${url}" controls style="width:100%;"></audio>`;
       document.getElementById('voiceModal').classList.add('open');
-
-      document.getElementById('sendVoiceBtn').onclick = () => {
-        const fr = new FileReader();
-        fr.onload = ev => {
-          const payload = { id:genId(), sender:currentUser, message:ev.target.result, type:'audio', replyTo:replyData };
-          socket.emit('chat message', payload);
-          appendMessage(payload, true);
+      document.getElementById('sendVoiceBtn').onclick=()=>{
+        const fr=new FileReader(); fr.onload=ev=>{
+          const payload={id:genId(),sender:currentUser,message:ev.target.result,type:'audio',replyTo:replyData};
+          socket.emit('chat message',payload); appendMessage(payload,true);
           closeVoiceModal(); cancelReply(); scrollToBottom();
-        };
-        fr.readAsDataURL(blob);
+        }; fr.readAsDataURL(blob);
       };
     };
-    mediaRecorder.start();
-    voiceBtnEl.classList.add('recording');
-    voiceBtnEl.title = 'Stop Recording';
-  } catch {
-    alert('Microphone permission denied!');
-  }
+    mediaRecorder.start(); voiceBtnEl.classList.add('recording'); voiceBtnEl.title='Stop Recording';
+  } catch { alert('Microphone permission denied!'); }
 };
-
-function closeVoiceModal() { document.getElementById('voiceModal').classList.remove('open'); }
+function closeVoiceModal(){ document.getElementById('voiceModal').classList.remove('open'); }
 
 // ── Delete Modal ───────────────────────────────────────────────────────────────
-document.getElementById('confirmDeleteBtn').onclick = () => {
-  if (pendingDeleteId) { socket.emit('delete message', pendingDeleteId); closeDeleteModal(); }
-};
-function closeDeleteModal() {
-  document.getElementById('deleteModal').classList.remove('open');
-  pendingDeleteId = null;
-}
+document.getElementById('confirmDeleteBtn').onclick=()=>{ if(pendingDeleteId){ socket.emit('delete message',pendingDeleteId); closeDeleteModal(); } };
+function closeDeleteModal(){ document.getElementById('deleteModal').classList.remove('open'); pendingDeleteId=null; }
 
 // ── Settings ───────────────────────────────────────────────────────────────────
-function toggleSettings() {
-  const d = document.getElementById('settingsDrawer');
-  d.classList.toggle('open');
-  if (d.classList.contains('open')) {
-    document.getElementById('updateName').value = currentUser;
-    document.getElementById('updateBio').value  = currentBio;
-  }
+function toggleSettings(){
+  const d=document.getElementById('settingsDrawer'); d.classList.toggle('open');
+  if(d.classList.contains('open')){ document.getElementById('updateName').value=currentUser; document.getElementById('updateBio').value=currentBio; }
 }
-
-function saveSettings() {
-  const newName = document.getElementById('updateName').value.trim();
-  const newBio  = document.getElementById('updateBio').value.trim();
-  if (!newName) { alert('Name cannot be empty!'); return; }
-  localStorage.setItem('chatUsername', newName);
-  localStorage.setItem('chatBio', newBio);
-  currentUser = newName; currentBio = newBio;
-  socket.emit('update profile', { name:newName, bio:newBio });
-  toggleSettings();
+function saveSettings(){
+  const newName=document.getElementById('updateName').value.trim();
+  const newBio=document.getElementById('updateBio').value.trim();
+  if(!newName){ alert('Name cannot be empty!'); return; }
+  localStorage.setItem('chatUsername',newName); localStorage.setItem('chatBio',newBio);
+  currentUser=newName; currentBio=newBio;
+  socket.emit('update profile',{name:newName,bio:newBio}); toggleSettings();
 }
 
 // ── Sidebar (mobile) ────────────────────────────────────────────────────────────
-function openSidebar() {
-  document.getElementById('sidebar').classList.add('mobile-open');
-  document.getElementById('sidebarBackdrop').classList.add('open');
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('mobile-open');
-  document.getElementById('sidebarBackdrop').classList.remove('open');
-}
+function openSidebar(){ document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('sidebarBackdrop').classList.add('open'); }
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('sidebarBackdrop').classList.remove('open'); }
 
 // ── Logout ─────────────────────────────────────────────────────────────────────
-function logout() {
-  if (confirm('Are you sure you want to logout?')) {
-    localStorage.removeItem('chatUsername');
-    localStorage.removeItem('chatBio');
-    location.reload();
-  }
-}
+function logout(){ if(confirm('Are you sure you want to logout?')){ localStorage.removeItem('chatUsername'); localStorage.removeItem('chatBio'); location.reload(); } }
 
 // ── Mobile Tab Switching ────────────────────────────────────────────────────────
 function switchTab(tab) {
-  // Update button states
-  document.querySelectorAll('.mob-btn').forEach(b => b.classList.remove('active'));
-  const btnMap = {chat:'Chat', users:'Users', rules:'Rules', report:'Report', settings:'Settings'};
-  const btnId = 'mob' + btnMap[tab] + 'Btn';
-  if (document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
-  
-  // Close all pickers
+  document.querySelectorAll('.mob-btn').forEach(b=>b.classList.remove('active'));
+  const btnMap={chat:'Chat',users:'Users',dms:'Dms',report:'Report',settings:'Settings'};
+  const btnId='mob'+btnMap[tab]+'Btn';
+  if(document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
   closeAllPickers();
-  
-  switch(tab) {
+  switch(tab){
     case 'chat':
       closeSidebar();
-      document.getElementById('rulesPage').classList.remove('open');
       document.getElementById('reportPage').classList.remove('open');
       document.getElementById('settingsDrawer').classList.remove('open');
+      closeDMPanel();
       break;
     case 'users':
       openSidebar();
       break;
-    case 'rules':
+    case 'dms':
       closeSidebar();
-      document.getElementById('rulesPage').classList.add('open');
+      document.getElementById('reportPage').classList.remove('open');
+      document.getElementById('settingsDrawer').classList.remove('open');
+      openDMPanel();
       break;
     case 'report':
       closeSidebar();
       document.getElementById('reportPage').classList.add('open');
+      closeDMPanel();
       break;
     case 'settings':
       closeSidebar();
+      closeDMPanel();
       toggleSettings();
       break;
   }
 }
 
-function closePage(pageId) {
-  document.getElementById(pageId).classList.remove('open');
-  document.querySelectorAll('.mob-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('mobChatBtn').classList.add('active');
+function closePage(pageId){ document.getElementById(pageId).classList.remove('open'); document.querySelectorAll('.mob-btn').forEach(b=>b.classList.remove('active')); document.getElementById('mobChatBtn').classList.add('active'); }
+
+// ── Report ──────────────────────────────────────────────────────────────────────
+function submitReport(){
+  const username=document.getElementById('reportUsername').value.trim();
+  const reason=document.getElementById('reportReason').value;
+  const description=document.getElementById('reportDescription').value.trim();
+  if(!username){ alert('Please enter a username.'); return; }
+  if(!reason){ alert('Please select a reason.'); return; }
+  if(!description){ alert('Please provide a description.'); return; }
+  socket.emit('report user',{reportedUser:username,reason,description,reportedBy:currentUser});
+  const successDiv=document.getElementById('reportSuccess'); successDiv.style.display='block';
+  document.getElementById('reportUsername').value=''; document.getElementById('reportReason').value=''; document.getElementById('reportDescription').value='';
+  setTimeout(()=>{ successDiv.style.display='none'; closePage('reportPage'); },3000);
 }
-
-// ── Report System ───────────────────────────────────────────────────────────────
-function submitReport() {
-  const username = document.getElementById('reportUsername').value.trim();
-  const reason = document.getElementById('reportReason').value;
-  const description = document.getElementById('reportDescription').value.trim();
-  
-  if (!username) { alert('Please enter a username to report.'); return; }
-  if (!reason) { alert('Please select a reason.'); return; }
-  if (!description) { alert('Please provide a description.'); return; }
-  
-  // Send report to server
-  socket.emit('report user', { reportedUser: username, reason, description, reportedBy: currentUser });
-  
-  // Show success message
-  const successDiv = document.getElementById('reportSuccess');
-  successDiv.style.display = 'block';
-  
-  // Reset form
-  document.getElementById('reportUsername').value = '';
-  document.getElementById('reportReason').value = '';
-  document.getElementById('reportDescription').value = '';
-  
-  // Hide message after 3 seconds
-  setTimeout(() => {
-    successDiv.style.display = 'none';
-    closePage('reportPage');
-  }, 3000);
-}
-
-// ── Direct Messages ─────────────────────────────────────────────────────────────
-let allUsers = [];
-let dmConversations = {}; 
-let currentDMUser = null;
-
-socket.on('user list', (users) => {
-  allUsers = users;
-  onlineCount.textContent = users.length;
-  sidebarCount.textContent = users.length;
-  usersList.innerHTML = '';
-  users.forEach(u => {
-    const name  = typeof u==='object' ? u.name : u;
-    const bio   = (u && u.bio) ? u.bio : 'No bio';
-    const isVip = u && u.isVip;
-    const col   = avatarColor(name);
-    const item  = document.createElement('div');
-    item.className = 'user-item';
-    item.title = bio;
-    item.innerHTML = `
-      <div class="user-avatar" style="background:${col.bg};color:${col.fg};">${escapeHtml(name.charAt(0).toUpperCase())}</div>
-      <div class="user-info">
-        <div class="user-name">${escapeHtml(name)}${isVip?'<span class="vip-badge">💎</span>':''}</div>
-        <div class="user-bio">${escapeHtml(bio)}</div>
-      </div>
-      <span class="mention-hint">@mention</span>`;
-    item.onclick = () => { insertMention(name); closeSidebar(); };
-    usersList.appendChild(item);
-  });
-});
-
-function openDMList() {
-  document.getElementById('dmList').classList.add('open');
-  populateDMSearchList();
-}
-
-function closeDMList() {
-  document.getElementById('dmList').classList.remove('open');
-}
-
-function closeDMChat() {
-  document.getElementById('dmChat').classList.remove('open');
-  currentDMUser = null;
-}
-
-function populateDMSearchList() {
-  const container = document.getElementById('dmListContainer');
-  const searchVal = document.getElementById('dmSearchInput').value.toLowerCase();
-  container.innerHTML = '';
-  
-  allUsers.forEach(u => {
-    const name = typeof u==='object' ? u.name : u;
-    if (name === currentUser) return;
-    if (searchVal && !name.toLowerCase().includes(searchVal)) return;
-    
-    const item = document.createElement('div');
-    item.className = 'dm-item';
-    const bio = (u && u.bio) ? u.bio : 'No bio';
-    item.innerHTML = `
-      <div class="dm-item-name">${escapeHtml(name)}${u.isVip ? ' 💎' : ''}</div>
-      <div class="dm-item-bio">${escapeHtml(bio)}</div>`;
-    item.onclick = () => openDMChat(name);
-    container.appendChild(item);
-  });
-}
-
-function openDMChat(username) {
-  currentDMUser = username;
-  document.getElementById('dmChatName').textContent = username;
-  document.getElementById('dmChat').classList.add('open');
-  document.getElementById('dmList').classList.remove('open');
-  
-  const chatWindow = document.getElementById('dmChatWindow');
-  chatWindow.innerHTML = '';
-  
-  if (dmConversations[username]) {
-    dmConversations[username].forEach(msg => {
-      appendDMMessage(msg, msg.sender === currentUser);
-    });
-  }
-}
-
-function appendDMMessage(data, isMe) {
-  const msg = document.createElement('div');
-  msg.className = `msg-row ${isMe ? 'me' : 'other'}`;
-  
-  const col = avatarColor(data.sender || '?');
-  const av = document.createElement('div');
-  av.className = 'msg-avatar';
-  av.style.cssText = `background:${col.bg};color:${col.fg};`;
-  av.textContent = (data.sender || '?').charAt(0).toUpperCase();
-  
-  const body = document.createElement('div');
-  body.className = 'msg-body';
-  
-  const bubble = document.createElement('div');
-  bubble.className = 'msg-bubble';
-  bubble.textContent = data.message;
-  
-  const timeEl = document.createElement('div');
-  timeEl.className = 'msg-time';
-  timeEl.textContent = fmtTime(data.createdAt);
-  
-  body.appendChild(bubble);
-  body.appendChild(timeEl);
-  
-  if (isMe) {
-    msg.appendChild(body); msg.appendChild(av);
-  } else {
-    msg.appendChild(av); msg.appendChild(body);
-  }
-  
-  document.getElementById('dmChatWindow').appendChild(msg);
-  document.getElementById('dmChatWindow').scrollTop = document.getElementById('dmChatWindow').scrollHeight;
-}
-
-function sendDMMessage() {
-  const dmInput = document.getElementById('dmInput');
-  const msg = dmInput.value.trim();
-  if (!msg || !currentDMUser) return;
-  
-  const data = { id:genId(), sender:currentUser, receiver:currentDMUser, message:msg, createdAt:new Date() };
-  socket.emit('private message', data);
-  
-  if (!dmConversations[currentDMUser]) dmConversations[currentDMUser] = [];
-  dmConversations[currentDMUser].push(data);
-  
-  appendDMMessage(data, true);
-  dmInput.value = '';
-}
-
-if (document.getElementById('dmSendBtn')) {
-  document.getElementById('dmSendBtn').onclick = sendDMMessage;
-}
-
-const dmInput = document.getElementById('dmInput');
-if (dmInput) {
-  dmInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDMMessage(); }
-  });
-}
-
-const dmSearchInput = document.getElementById('dmSearchInput');
-if (dmSearchInput) {
-  dmSearchInput.addEventListener('input', populateDMSearchList);
-}
-
-socket.on('private message', (data) => {
-  const other = data.sender === currentUser ? data.receiver : data.sender;
-  if (!dmConversations[other]) dmConversations[other] = [];
-  dmConversations[other].push(data);
-  
-  if (currentDMUser === data.sender && data.sender !== currentUser) {
-    appendDMMessage(data, false);
-    playNotif();
-  }
-});
 
 // ── Close pickers on outside click ────────────────────────────────────────────
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('#emojiPicker') && !e.target.closest('#emojiToggleBtn')) {
-    emojiPicker.style.display='none'; emojiOpen=false;
-  }
-  if (!e.target.closest('#gifPicker') && !e.target.closest('#gifToggleBtn')) {
-    gifPicker.style.display='none'; gifOpen=false;
-  }
+document.addEventListener('click',(e)=>{
+  if(!e.target.closest('#emojiPicker')&&!e.target.closest('#emojiToggleBtn')){ emojiPicker.style.display='none'; emojiOpen=false; }
+  if(!e.target.closest('#gifPicker')&&!e.target.closest('#gifToggleBtn')){ gifPicker.style.display='none'; gifOpen=false; }
 });
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeAllPickers(); closeDeleteModal(); closeMediaModal(); closeVoiceModal(); }
-});
-function closeAllPickers() {
-  emojiPicker.style.display='none'; emojiOpen=false;
-  gifPicker.style.display='none';   gifOpen=false;
-}
-
-// ── Tab visibility notification ────────────────────────────────────────────────
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) document.title = 'TalkWithStrangers — Group Chat';
-});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeAllPickers(); closeDeleteModal(); closeMediaModal(); closeVoiceModal(); } });
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) document.title='TalkWithStrangers — Group Chat'; });
 </script>
 </body>
 </html>
