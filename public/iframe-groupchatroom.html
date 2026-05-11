@@ -193,25 +193,74 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 /* ── Announcement ─────────────────────────────────── */
 #announcementBanner{display:none;position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:9000;background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 8px 30px rgba(108,99,255,0.5);max-width:90vw;text-align:center;}
 
-/* ── Mobile ───────────────────────────────────────── */
-#mobileBottom{display:none;background:var(--sidebar);border-top:1px solid var(--border);padding:8px 0 10px;justify-content:space-around;align-items:center;flex-shrink:0;}
-.mob-btn{background:none;border:none;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:18px;padding:4px 16px;transition:.2s;}
-.mob-btn span{font-size:10px;font-weight:600;font-family:inherit;}
-.mob-btn.active,.mob-btn:hover{color:var(--accent);}
+/* ── Mobile Bottom Nav (5 Tabs) ──────────────────── */
+#mobileBottom{display:none;background:var(--sidebar);border-top:1px solid var(--border);padding:0;justify-content:space-around;align-items:stretch;flex-shrink:0;height:56px;}
+.mob-btn{background:none;border:none;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:16px;padding:0 8px;transition:.2s;flex:1;border-right:1px solid var(--border);position:relative;}
+.mob-btn:last-child{border-right:none;}
+.mob-btn span{font-size:9px;font-weight:600;font-family:inherit;white-space:nowrap;}
+.mob-btn.active{color:var(--accent);background:rgba(108,99,255,0.1);}
+.mob-btn:hover{color:var(--accent);}
 .sidebar-backdrop{display:none;position:fixed;inset:0;z-index:799;background:rgba(0,0,0,0.5);}
 .sidebar-backdrop.open{display:block;}
+
+/* Rules & Report Pages */
+#rulesPage,#reportPage{display:none;position:absolute;inset:0;background:var(--bg);z-index:350;flex-direction:column;overflow-y:auto;}
+#rulesPage.open,#reportPage.open{display:flex;}
+.page-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border);background:var(--sidebar);font-weight:700;font-size:16px;flex-shrink:0;}
+.page-close{background:none;border:none;color:var(--text);font-size:24px;cursor:pointer;}
+.page-content{flex:1;padding:20px;overflow-y:auto;}
+.rules-section{margin-bottom:24px;}
+.rules-section h3{color:var(--accent);margin-bottom:10px;font-size:16px;}
+.rules-section ol{margin-left:20px;color:var(--text);line-height:1.8;font-size:14px;}
+.rules-section li{margin-bottom:10px;}
+
+/* Report Form */
+.report-form{display:flex;flex-direction:column;gap:16px;max-width:500px;}
+.form-field{display:flex;flex-direction:column;gap:8px;}
+.form-field label{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.form-field input,.form-field select,.form-field textarea{background:var(--input);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 14px;font-size:14px;font-family:inherit;outline:none;}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:rgba(108,99,255,.5);}
+.form-field textarea{resize:vertical;min-height:100px;}
+.submit-report-btn{background:linear-gradient(135deg,var(--accent),#8b5cf6);border:none;border-radius:10px;color:#fff;padding:12px 24px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;align-self:flex-start;transition:.2s;}
+.submit-report-btn:hover{opacity:.9;}
+.report-success{display:none;background:rgba(61,220,132,0.15);border:1px solid rgba(61,220,132,0.3);color:var(--green);padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:16px;}
+
+/* DM List & Chat */
+#dmList{display:none;position:absolute;inset:0;background:var(--bg);z-index:350;flex-direction:column;}
+#dmList.open{display:flex;}
+.dm-header{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border);background:var(--sidebar);font-weight:700;font-size:15px;}
+.dm-search{padding:12px 16px;border-bottom:1px solid var(--border);}
+.dm-search-input{width:100%;background:var(--input);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;}
+.dm-search-input:focus{border-color:rgba(108,99,255,.5);}
+.dm-list{flex:1;overflow-y:auto;padding:8px;}
+.dm-item{padding:12px 16px;border-radius:10px;cursor:pointer;transition:.2s;margin-bottom:4px;border-left:3px solid transparent;}
+.dm-item:hover{background:rgba(255,255,255,0.05);}
+.dm-item.active{background:rgba(108,99,255,0.15);border-left-color:var(--accent);}
+.dm-item-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.dm-item-bio{font-size:11px;color:var(--muted);}
+.dm-chat{display:none;position:fixed;inset:0;z-index:400;background:var(--bg);flex-direction:column;}
+.dm-chat.open{display:flex;}
 
 @media(max-width:768px){
   .sidebar{display:none;}
   .sidebar.mobile-open{display:flex;position:fixed;top:0;left:0;bottom:0;z-index:800;width:270px;box-shadow:8px 0 30px rgba(0,0,0,0.5);}
   #mobileBottom{display:flex;}
-  .topbar{padding:0 12px;}
+  .topbar{padding:0 12px;height:48px;}
+  .topbar-logo{font-size:15px;}
+  .topbar-right{gap:6px;}
+  .icon-btn,.logout-btn-top{height:32px;width:32px;font-size:12px;padding:0;}
+  .online-badge{font-size:11px;padding:3px 8px;}
+  .topbar-right span{display:none;}
   .chat-window{padding:10px 12px;}
-  #emojiPicker,#gifPicker{left:0;right:0;width:auto;border-radius:16px 16px 0 0;bottom:60px;}
+  #emojiPicker,#gifPicker{left:0;right:0;width:auto;border-radius:16px 16px 0 0;bottom:56px;}
   .msg-body{max-width:84%;}
   .msg-bubble img,.msg-bubble video{max-width:200px;}
   #settingsDrawer{width:100%;}
   .topbar-room{display:none;}
+  .input-area{padding:8px 12px 10px;}
+  .input-row{gap:8px;}
+  .send-btn{width:40px;height:40px;font-size:16px;}
+  #msgInput{font-size:14px;}
 }
 </style>
 </head>
@@ -224,7 +273,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <p class="login-sub">Join anonymously — no sign up needed</p>
     <div class="form-group">
       <label>Username</label>
-      <input type="text" id="usernameInput" placeholder="Username" maxlength="20" autocomplete="off"/>
+      <input type="text" id="usernameInput" placeholder="e.g. CoolStranger99" maxlength="20" autocomplete="off"/>
     </div>
     <div class="form-group">
       <label>Bio / Interests <span style="font-weight:400;text-transform:none;">(optional)</span></label>
@@ -247,7 +296,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div class="topbar-right">
       <div class="online-badge"><span class="dot"></span><span id="onlineCount">0</span> online</div>
       <button class="icon-btn" onclick="toggleSettings()" title="Settings"><i class="fa-solid fa-gear"></i></button>
-      <button class="logout-btn-top" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></button>
     </div>
   </div>
 
@@ -263,6 +311,120 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <div><div class="drawer-label">Update Username</div><input type="text" id="updateName" class="drawer-input" placeholder="New username" maxlength="20"/></div>
         <div><div class="drawer-label">Update Bio / Interests</div><input type="text" id="updateBio" class="drawer-input" placeholder="e.g. Gaming, Music" maxlength="30"/></div>
         <button class="drawer-save" onclick="saveSettings()"><i class="fa-solid fa-floppy-disk" style="margin-right:6px;"></i>Save Changes</button>
+        <hr style="border:none;border-top:1px solid var(--border);margin:10px 0;"/>
+        <button class="drawer-save" onclick="logout()" style="background:linear-gradient(135deg,#ff6584,#ff8a65);"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px;"></i>Logout</button>
+      </div>
+    </div>
+
+    <!-- Rules Page -->
+    <div id="rulesPage">
+      <div class="page-header">
+        <span><i class="fa-solid fa-scroll" style="color:var(--accent);margin-right:8px;"></i>Community Rules</span>
+        <button class="page-close" onclick="closePage('rulesPage')">×</button>
+      </div>
+      <div class="page-content">
+        <div class="rules-section">
+          <h3>📋 Community Guidelines</h3>
+          <p style="color:var(--muted);margin-bottom:12px;">Please follow these rules to keep our chat community safe and respectful.</p>
+          <ol>
+            <li><strong>Be Respectful</strong> - Treat all users with kindness and respect. No harassment, bullying, or discrimination of any kind.</li>
+            <li><strong>No Hate Speech</strong> - Don't use slurs or derogatory language. Respect people of all backgrounds.</li>
+            <li><strong>No Adult Content</strong> - Keep the chat appropriate. No explicit images, sexual content, or gore.</li>
+            <li><strong>No Spam</strong> - Don't flood chat with repeated messages. No advertising or promotion without permission.</li>
+            <li><strong>No Personal Info</strong> - Don't share addresses, phone numbers, emails, or other identifying information.</li>
+            <li><strong>No Impersonation</strong> - Don't pretend to be someone else or use fake identities to deceive.</li>
+            <li><strong>Respect Privacy</strong> - Don't share others' personal information or screenshots of conversations.</li>
+            <li><strong>No Illegal Content</strong> - Don't promote or discuss illegal activities, drugs, weapons, or hacking.</li>
+            <li><strong>No Bot/Script Abuse</strong> - Don't use bots, scripts, or automation to disrupt the chat.</li>
+            <li><strong>Follow Admin Decisions</strong> - Listen to moderators. If you're banned or warned, respect that decision.</li>
+          </ol>
+        </div>
+        <div class="rules-section">
+          <h3>⚠️ Consequences of Breaking Rules</h3>
+          <ol>
+            <li><strong>First Offense:</strong> Warning with explanation of the rule violated.</li>
+            <li><strong>Second Offense:</strong> Temporary ban (24-48 hours) from the chat.</li>
+            <li><strong>Third Offense:</strong> Permanent ban from the platform.</li>
+          </ol>
+        </div>
+        <div class="rules-section">
+          <h3>✨ Best Practices</h3>
+          <ol>
+            <li>Use @mentions to respond to specific people</li>
+            <li>Share GIFs and emojis to express yourself</li>
+            <li>Check the online users list before sending a message</li>
+            <li>Report inappropriate behavior using the Report feature</li>
+            <li>Have fun and make friends!</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report User Page -->
+    <div id="reportPage">
+      <div class="page-header">
+        <span><i class="fa-solid fa-flag" style="color:var(--accent2);margin-right:8px;"></i>Report User</span>
+        <button class="page-close" onclick="closePage('reportPage')">×</button>
+      </div>
+      <div class="page-content">
+        <div class="report-success" id="reportSuccess">✅ Report submitted successfully! Our team will review it shortly.</div>
+        <div class="report-form">
+          <div class="form-field">
+            <label>Username to Report</label>
+            <input type="text" id="reportUsername" placeholder="Enter the username you want to report" maxlength="20"/>
+          </div>
+          <div class="form-field">
+            <label>Reason for Report</label>
+            <select id="reportReason">
+              <option value="">Select a reason...</option>
+              <option value="harassment">Harassment or Bullying</option>
+              <option value="hate">Hate Speech or Discrimination</option>
+              <option value="adult">Adult/Sexual Content</option>
+              <option value="spam">Spam or Advertising</option>
+              <option value="personal">Sharing Personal Information</option>
+              <option value="impersonate">Impersonation</option>
+              <option value="illegal">Illegal Activity</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Detailed Description</label>
+            <textarea id="reportDescription" placeholder="Please describe what happened and provide any relevant details..." maxlength="500"></textarea>
+          </div>
+          <button class="submit-report-btn" onclick="submitReport()"><i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i>Submit Report</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DM List -->
+    <div id="dmList">
+      <div class="dm-header">
+        <span><i class="fa-solid fa-comment-dots" style="color:var(--accent);margin-right:8px;"></i>Messages</span>
+        <button class="page-close" onclick="closeDMList()">×</button>
+      </div>
+      <div class="dm-search">
+        <input type="text" class="dm-search-input" id="dmSearchInput" placeholder="Search for a user..." autocomplete="off"/>
+      </div>
+      <div class="dm-list" id="dmListContainer"></div>
+    </div>
+
+    <!-- DM Chat Window -->
+    <div id="dmChat" class="dm-chat">
+      <div class="page-header">
+        <span id="dmChatName"></span>
+        <button class="page-close" onclick="closeDMChat()">×</button>
+      </div>
+      <div id="dmChatWindow" class="chat-window"></div>
+      <div class="input-area">
+        <div class="input-row">
+          <div class="input-box">
+            <textarea id="dmInput" placeholder="Type a message…" rows="1"></textarea>
+            <div class="input-icons">
+              <button class="input-icon-btn" id="dmEmojiBtn" title="Emoji"><i class="fa-regular fa-face-smile"></i></button>
+            </div>
+          </div>
+          <button class="send-btn" id="dmSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
       </div>
     </div>
 
@@ -329,9 +491,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
   <!-- Mobile Bottom Nav -->
   <div id="mobileBottom">
-    <button class="mob-btn active" id="mobChatBtn"><i class="fa-solid fa-comment"></i><span>Chat</span></button>
-    <button class="mob-btn" onclick="openSidebar()"><i class="fa-solid fa-users"></i><span>Users</span></button>
-    <button class="mob-btn" onclick="toggleSettings()"><i class="fa-solid fa-gear"></i><span>Settings</span></button>
+    <button class="mob-btn active" id="mobChatBtn" onclick="switchTab('chat')"><i class="fa-solid fa-comment"></i><span>Chat</span></button>
+    <button class="mob-btn" id="mobUsersBtn" onclick="switchTab('users')"><i class="fa-solid fa-users"></i><span>Users</span></button>
+    <button class="mob-btn" id="mobRulesBtn" onclick="switchTab('rules')"><i class="fa-solid fa-scroll"></i><span>Rules</span></button>
+    <button class="mob-btn" id="mobReportBtn" onclick="switchTab('report')"><i class="fa-solid fa-flag"></i><span>Report</span></button>
+    <button class="mob-btn" id="mobSettingsBtn" onclick="switchTab('settings')"><i class="fa-solid fa-gear"></i><span>Settings</span></button>
   </div>
 
 </div><!-- #app -->
@@ -505,8 +669,7 @@ socket.on('joined', () => {
 
 socket.on('duplicate', msg => {
   loginError.textContent = '⚠️ ' + msg;
-  joinBtn.disabled = false;
-  joinBtn.innerHTML = '<i class="fa-solid fa-bolt" style="margin-right:8px;"></i>Join Chat';
+  joinBtn.disabled = false; joinBtn.innerHTML = '<i class="fa-solid fa-bolt" style="margin-right:8px;"></i>Join Chat';
 });
 
 // ── History ────────────────────────────────────────────────────────────────────
@@ -811,7 +974,7 @@ gifSearchInput.addEventListener('keydown', e => { if(e.key==='Enter') fetchGifs(
 async function fetchGifs(query) {
   gifGrid.innerHTML = '<div class="gif-loading">Loading…</div>';
   // Replace with your own Tenor API key in production
-  const key = 'LIVDSRZULELA';
+  const key = 'AIzaSyAyimkuYQYF_FXVALexPZHerc7CMoFpjPc';
   try {
     const url = query === 'trending'
       ? `https://tenor.googleapis.com/v2/featured?key=${key}&limit=16&media_filter=gif`
@@ -966,10 +1129,240 @@ function closeSidebar() {
 
 // ── Logout ─────────────────────────────────────────────────────────────────────
 function logout() {
-  localStorage.removeItem('chatUsername');
-  localStorage.removeItem('chatBio');
-  location.reload();
+  if (confirm('Are you sure you want to logout?')) {
+    localStorage.removeItem('chatUsername');
+    localStorage.removeItem('chatBio');
+    location.reload();
+  }
 }
+
+// ── Mobile Tab Switching ────────────────────────────────────────────────────────
+function switchTab(tab) {
+  // Update button states
+  document.querySelectorAll('.mob-btn').forEach(b => b.classList.remove('active'));
+  const btnMap = {chat:'Chat', users:'Users', rules:'Rules', report:'Report', settings:'Settings'};
+  const btnId = 'mob' + btnMap[tab] + 'Btn';
+  if (document.getElementById(btnId)) document.getElementById(btnId).classList.add('active');
+  
+  // Close all pickers
+  closeAllPickers();
+  
+  switch(tab) {
+    case 'chat':
+      closeSidebar();
+      document.getElementById('rulesPage').classList.remove('open');
+      document.getElementById('reportPage').classList.remove('open');
+      document.getElementById('settingsDrawer').classList.remove('open');
+      break;
+    case 'users':
+      openSidebar();
+      break;
+    case 'rules':
+      closeSidebar();
+      document.getElementById('rulesPage').classList.add('open');
+      break;
+    case 'report':
+      closeSidebar();
+      document.getElementById('reportPage').classList.add('open');
+      break;
+    case 'settings':
+      closeSidebar();
+      toggleSettings();
+      break;
+  }
+}
+
+function closePage(pageId) {
+  document.getElementById(pageId).classList.remove('open');
+  document.querySelectorAll('.mob-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mobChatBtn').classList.add('active');
+}
+
+// ── Report System ───────────────────────────────────────────────────────────────
+function submitReport() {
+  const username = document.getElementById('reportUsername').value.trim();
+  const reason = document.getElementById('reportReason').value;
+  const description = document.getElementById('reportDescription').value.trim();
+  
+  if (!username) { alert('Please enter a username to report.'); return; }
+  if (!reason) { alert('Please select a reason.'); return; }
+  if (!description) { alert('Please provide a description.'); return; }
+  
+  // Send report to server
+  socket.emit('report user', { reportedUser: username, reason, description, reportedBy: currentUser });
+  
+  // Show success message
+  const successDiv = document.getElementById('reportSuccess');
+  successDiv.style.display = 'block';
+  
+  // Reset form
+  document.getElementById('reportUsername').value = '';
+  document.getElementById('reportReason').value = '';
+  document.getElementById('reportDescription').value = '';
+  
+  // Hide message after 3 seconds
+  setTimeout(() => {
+    successDiv.style.display = 'none';
+    closePage('reportPage');
+  }, 3000);
+}
+
+// ── Direct Messages ─────────────────────────────────────────────────────────────
+let allUsers = [];
+let dmConversations = {}; 
+let currentDMUser = null;
+
+socket.on('user list', (users) => {
+  allUsers = users;
+  onlineCount.textContent = users.length;
+  sidebarCount.textContent = users.length;
+  usersList.innerHTML = '';
+  users.forEach(u => {
+    const name  = typeof u==='object' ? u.name : u;
+    const bio   = (u && u.bio) ? u.bio : 'No bio';
+    const isVip = u && u.isVip;
+    const col   = avatarColor(name);
+    const item  = document.createElement('div');
+    item.className = 'user-item';
+    item.title = bio;
+    item.innerHTML = `
+      <div class="user-avatar" style="background:${col.bg};color:${col.fg};">${escapeHtml(name.charAt(0).toUpperCase())}</div>
+      <div class="user-info">
+        <div class="user-name">${escapeHtml(name)}${isVip?'<span class="vip-badge">💎</span>':''}</div>
+        <div class="user-bio">${escapeHtml(bio)}</div>
+      </div>
+      <span class="mention-hint">@mention</span>`;
+    item.onclick = () => { insertMention(name); closeSidebar(); };
+    usersList.appendChild(item);
+  });
+});
+
+function openDMList() {
+  document.getElementById('dmList').classList.add('open');
+  populateDMSearchList();
+}
+
+function closeDMList() {
+  document.getElementById('dmList').classList.remove('open');
+}
+
+function closeDMChat() {
+  document.getElementById('dmChat').classList.remove('open');
+  currentDMUser = null;
+}
+
+function populateDMSearchList() {
+  const container = document.getElementById('dmListContainer');
+  const searchVal = document.getElementById('dmSearchInput').value.toLowerCase();
+  container.innerHTML = '';
+  
+  allUsers.forEach(u => {
+    const name = typeof u==='object' ? u.name : u;
+    if (name === currentUser) return;
+    if (searchVal && !name.toLowerCase().includes(searchVal)) return;
+    
+    const item = document.createElement('div');
+    item.className = 'dm-item';
+    const bio = (u && u.bio) ? u.bio : 'No bio';
+    item.innerHTML = `
+      <div class="dm-item-name">${escapeHtml(name)}${u.isVip ? ' 💎' : ''}</div>
+      <div class="dm-item-bio">${escapeHtml(bio)}</div>`;
+    item.onclick = () => openDMChat(name);
+    container.appendChild(item);
+  });
+}
+
+function openDMChat(username) {
+  currentDMUser = username;
+  document.getElementById('dmChatName').textContent = username;
+  document.getElementById('dmChat').classList.add('open');
+  document.getElementById('dmList').classList.remove('open');
+  
+  const chatWindow = document.getElementById('dmChatWindow');
+  chatWindow.innerHTML = '';
+  
+  if (dmConversations[username]) {
+    dmConversations[username].forEach(msg => {
+      appendDMMessage(msg, msg.sender === currentUser);
+    });
+  }
+}
+
+function appendDMMessage(data, isMe) {
+  const msg = document.createElement('div');
+  msg.className = `msg-row ${isMe ? 'me' : 'other'}`;
+  
+  const col = avatarColor(data.sender || '?');
+  const av = document.createElement('div');
+  av.className = 'msg-avatar';
+  av.style.cssText = `background:${col.bg};color:${col.fg};`;
+  av.textContent = (data.sender || '?').charAt(0).toUpperCase();
+  
+  const body = document.createElement('div');
+  body.className = 'msg-body';
+  
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.textContent = data.message;
+  
+  const timeEl = document.createElement('div');
+  timeEl.className = 'msg-time';
+  timeEl.textContent = fmtTime(data.createdAt);
+  
+  body.appendChild(bubble);
+  body.appendChild(timeEl);
+  
+  if (isMe) {
+    msg.appendChild(body); msg.appendChild(av);
+  } else {
+    msg.appendChild(av); msg.appendChild(body);
+  }
+  
+  document.getElementById('dmChatWindow').appendChild(msg);
+  document.getElementById('dmChatWindow').scrollTop = document.getElementById('dmChatWindow').scrollHeight;
+}
+
+function sendDMMessage() {
+  const dmInput = document.getElementById('dmInput');
+  const msg = dmInput.value.trim();
+  if (!msg || !currentDMUser) return;
+  
+  const data = { id:genId(), sender:currentUser, receiver:currentDMUser, message:msg, createdAt:new Date() };
+  socket.emit('private message', data);
+  
+  if (!dmConversations[currentDMUser]) dmConversations[currentDMUser] = [];
+  dmConversations[currentDMUser].push(data);
+  
+  appendDMMessage(data, true);
+  dmInput.value = '';
+}
+
+if (document.getElementById('dmSendBtn')) {
+  document.getElementById('dmSendBtn').onclick = sendDMMessage;
+}
+
+const dmInput = document.getElementById('dmInput');
+if (dmInput) {
+  dmInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDMMessage(); }
+  });
+}
+
+const dmSearchInput = document.getElementById('dmSearchInput');
+if (dmSearchInput) {
+  dmSearchInput.addEventListener('input', populateDMSearchList);
+}
+
+socket.on('private message', (data) => {
+  const other = data.sender === currentUser ? data.receiver : data.sender;
+  if (!dmConversations[other]) dmConversations[other] = [];
+  dmConversations[other].push(data);
+  
+  if (currentDMUser === data.sender && data.sender !== currentUser) {
+    appendDMMessage(data, false);
+    playNotif();
+  }
+});
 
 // ── Close pickers on outside click ────────────────────────────────────────────
 document.addEventListener('click', (e) => {
