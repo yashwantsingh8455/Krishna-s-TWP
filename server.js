@@ -1,4 +1,4 @@
-// 1. Dependencies & Configuration
+// ── 1. CONFIGURATION & MODULES ──────────────────────────────────────────────
 require('dotenv').config();
 const express = require("express");
 const app = express();
@@ -6,329 +6,271 @@ const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 const path = require("path");
 const fs = require("fs");
-const { Client, GatewayIntentBits, EmbedBuilder, ActivityType } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActivityType, REST, Routes, SlashCommandBuilder } = require('discord.js');
 
-// ── Global State ──────────────────────────────────────────────────────────────
-let users = {};
-let bannedIPs = {};
+// ── 2. GLOBAL STATE & PERSISTENCE ───────────────────────────────────────────
+let users = {};          
 let shadowBanned = new Set();
 let vips = new Set();
-let blacklisted = new Set();
-const lastSeenMap = {};  // nameLower -> timestamp
+const ADMIN_NAME = 'Yashwant'; 
 
-// ── Permanent Username Ban List ───────────────────────────────────────────────
 const BANNED_FILE = path.join(__dirname, 'banned-usernames.json');
-function loadBanned() {
-  try {
-    if (fs.existsSync(BANNED_FILE))
-      return new Set(JSON.parse(fs.readFileSync(BANNED_FILE, 'utf8')));
-  } catch {}
-  return new Set();
-}
-function saveBanned() {
-  fs.writeFileSync(BANNED_FILE, JSON.stringify([...bannedUsernames]), 'utf8');
-}
-const bannedUsernames = loadBanned();
+let bannedUsernames = new Set();
 
-// ── Discord Bot ───────────────────────────────────────────────────────────────
+if (fs.existsSync(BANNED_FILE)) {
+    try {
+        const data = JSON.parse(fs.readFileSync(BANNED_FILE, 'utf8'));
+        bannedUsernames = new Set(data);
+    } catch (e) { console.error("Error loading ban list:", e); }
+}
+
+function saveBanned() {
+    fs.writeFileSync(BANNED_FILE, JSON.stringify([...bannedUsernames]), 'utf8');
+}
+
+// ── 3. DISCORD BOT SETUP ────────────────────────────────────────────────────
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
 });
 
 const DISCORD_TOKEN      = process.env.DISCORD_TOKEN;
-const STATUS_CHANNEL_ID  = '1485502261097398312';
-const CHAT_CHANNEL_ID    = '1485501926152863957';
-const ADMIN_CHANNEL_ID   = '1485501424891727952';
-const FIND_IP_CHANNEL_ID = '1485502368136298569';
-const MOD_LOG_CHANNEL_ID = '1485502442610098366';
+const CLIENT_ID          = process.env.CLIENT_ID;
+const CHAT_CHANNEL_ID    = '1485501926152863957'; 
+const STATUS_CHANNEL_ID  = '1485502261097398312'; 
+const MOD_LOG_CHANNEL_ID = '1503383670558294137'; 
+const CONTROL_CHANNEL_ID = '1485501424891727952'; 
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── 4. REGISTER SLASH COMMANDS (FIXED SlashCommandBuilder) ──────────────────
+const commands = [
+    new SlashCommandBuilder()
+        .setName('ann')
+        .setDescription('Send a global announcement')
+        .addStringOption(opt => opt.setName('message').setDescription('Announcement text').setRequired(true)),
+    
+    new SlashCommandBuilder()
+        .setName('kick')
+        .setDescription('Kick a user from web chat')
+        .addStringOption(opt => opt.setName('username').setDescription('Username to kick').setRequired(true)),
+    
+    new SlashCommandBuilder()
+        .setName('ban')
+        .setDescription('Permanently ban a username')
+        .addStringOption(opt => opt.setName('username').setDescription('Username to ban').setRequired(true)),
+    
+    new SlashCommandBuilder()
+        .setName('vip')
+        .setDescription('Assign VIP status to a user')
+        .addStringOption(opt => opt.setName('username').setDescription('Username for VIP').setRequired(true)),
+    
+    new SlashCommandBuilder()
+        .setName('online')
+        .setDescription('Show all online web users')
+].map(cmd => cmd.toJSON());
+
+const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
+
+(async () => {
+    try {
+        console.log('Started refreshing application (/) commands.');
+        await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
+        console.log('Successfully reloaded application (/) commands.');
+    } catch (err) { console.error(err); }
+})();
+
+// ── 5. HELPERS ──────────────────────────────────────────────────────────────
 function getIP(socket) {
-  try {
     const raw = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
     return (raw || '127.0.0.1').split(',')[0].trim();
-  } catch { return '127.0.0.1'; }
 }
 
 function buildUserList() {
-  return Object.values(users).map(u => ({
-    name:    u.name,
-    bio:     u.bio,
-    isVip:   u.isVip,
-    isGuest: u.isGuest,
-    avatar:  u.avatar || null,
-    status:  'online',
-    lastSeen: null
-  }));
+    return Object.values(users).map(u => ({
+        name: u.name,
+        bio: u.bio,
+        isVip: u.isVip
+    }));
 }
 
 async function updateDiscordStatus() {
-  try {
-    const channel = await client.channels.fetch(STATUS_CHANNEL_ID);
-    const count = Object.keys(users).length;
-    if (channel) await channel.setName(`🟢-active-${count}`);
-    client.user.setActivity(`${count} Users Online`, { type: ActivityType.Watching });
-  } catch (e) { console.error('Status Error:', e.message); }
+    try {
+        const count = Object.keys(users).length;
+        client.user?.setActivity(`${count} Strangers Online`, { type: ActivityType.Watching });
+        const channel = await client.channels.fetch(STATUS_CHANNEL_ID).catch(() => null);
+        if (channel && channel.isTextBased()) {
+            // Optional: Update channel name if it's a voice/stage channel or special
+            await channel.setName(`🟢-active-${count}`).catch(() => {});
+        }
+    } catch (e) { console.log("Status Update Error:", e.message); }
 }
 
-// ── Discord Commands ──────────────────────────────────────────────────────────
-client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
-  const args    = message.content.split(' ');
-  const command = args[0].toLowerCase();
+// ── 6. DISCORD INTERACTION (SLASH COMMANDS) ─────────────────────────────────
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
 
-  if (message.channel.id === ADMIN_CHANNEL_ID) {
-
-    if (command === '!ann') {
-      const msg = args.slice(1).join(' ');
-      if (!msg) return message.reply('❌ Use: `!ann <message>`');
-      io.emit('announcement', msg);
-      return message.reply('✅ Announcement sent!');
+    if (interaction.channelId !== CONTROL_CHANNEL_ID) {
+        return interaction.reply({ content: '❌ Use commands in the Admin Control channel!', ephemeral: true });
     }
 
-    if (command === '!vip') {
-      const target = args[1];
-      if (!target) return message.reply('❌ Use: `!vip <username>`');
-      vips.add(target.toLowerCase());
-      io.emit('vip_update', target.toLowerCase());
-      return message.reply(`💎 **${target}** is now VIP!`);
+    const { commandName, options } = interaction;
+
+    if (commandName === 'ann') {
+        const msg = options.getString('message');
+        io.emit('announcement', msg);
+        await interaction.reply(`📢 Announcement Sent: **${msg}**`);
     }
 
-    if (command === '!sban') {
-      const target = args[1];
-      if (!target) return message.reply('❌ Use: `!sban <username>`');
-      shadowBanned.add(target.toLowerCase());
-      return message.reply(`🕵️ **${target}** shadow banned.`);
+    if (commandName === 'kick') {
+        const target = options.getString('username').toLowerCase();
+        const sid = Object.keys(users).find(id => users[id].name.toLowerCase() === target);
+        if (sid) {
+            io.to(sid).emit('duplicate', '👢 You were kicked by an admin.');
+            io.sockets.sockets.get(sid)?.disconnect();
+            await interaction.reply(`✅ **${target}** has been kicked.`);
+        } else await interaction.reply('❓ User online nahi hai.');
     }
 
-    if (command === '!unban') {
-      const target = args[1];
-      if (!target) return message.reply('❌ Use: `!unban <username>`');
-      bannedUsernames.delete(target.toLowerCase());
-      blacklisted.delete(target.toLowerCase());
-      saveBanned();
-      return message.reply(`✅ **${target}** unban ho gaya.`);
+    if (commandName === 'ban') {
+        const target = options.getString('username').toLowerCase();
+        bannedUsernames.add(target);
+        saveBanned();
+        const sid = Object.keys(users).find(id => users[id].name.toLowerCase() === target);
+        if (sid) io.sockets.sockets.get(sid)?.disconnect();
+        await interaction.reply(`🚫 **${target}** has been permanently banned.`);
     }
 
-    // Block karo permanently + disconnect
-    if (command === '!black') {
-      const target = args[1];
-      if (!target) return message.reply('❌ Use: `!black <username>`');
-      const nameLower = target.toLowerCase();
-      blacklisted.add(nameLower);
-      bannedUsernames.add(nameLower);
-      saveBanned();
-      const entry = Object.entries(users).find(([, u]) => u.name.toLowerCase() === nameLower);
-      if (entry) {
-        io.to(entry[0]).emit('ban_alert', '⛔ Aapka account blacklist kar diya gaya hai.');
-        setTimeout(() => io.sockets.sockets.get(entry[0])?.disconnect(), 600);
-      }
-      return message.reply(`⛔ **${target}** blacklisted + permanently banned!`);
+    if (commandName === 'vip') {
+        const target = options.getString('username').toLowerCase();
+        vips.add(target);
+        io.emit('vip_update', target);
+        await interaction.reply(`💎 **${target}** is now a VIP!`);
     }
 
-    // Kick (temporary)
-    if (command === '!kick') {
-      const target = args[1];
-      if (!target) return message.reply('❌ Use: `!kick <username>`');
-      const entry = Object.entries(users).find(([, u]) => u.name.toLowerCase() === target.toLowerCase());
-      if (!entry) return message.reply(`❓ **${target}** not found online.`);
-      io.to(entry[0]).emit('ban_alert', '👢 Aapko chat se kick kar diya gaya.');
-      setTimeout(() => io.sockets.sockets.get(entry[0])?.disconnect(), 600);
-      return message.reply(`👢 **${target}** kicked!`);
+    if (commandName === 'online') {
+        const list = Object.values(users).map(u => `• ${u.name}`).join('\n') || 'No one online.';
+        await interaction.reply(`**Web Users Online (${Object.keys(users).length}):**\n${list}`);
     }
+});
 
-    // Online users list
-    if (command === '!online') {
-      const list = Object.values(users)
-        .map(u => `• **${u.name}**${u.isGuest?' (Guest)':''} | \`${u.ip}\``)
-        .join('\n') || 'Koi nahi abhi.';
-      return message.reply(`**Online (${Object.keys(users).length}):**\n${list}`);
-    }
-  }
+// ── 7. DISCORD CHAT MIRRORING ───────────────────────────────────────────────
+client.on('messageCreate', (message) => {
+    if (message.author.bot || message.channel.id !== CHAT_CHANNEL_ID) return;
+    if (message.content.startsWith('/')) return;
 
-  if (message.channel.id === FIND_IP_CHANNEL_ID || message.channel.id === ADMIN_CHANNEL_ID) {
-    if (command === '!findip') {
-      const target = args[1];
-      const found  = Object.values(users).find(u => u.name.toLowerCase() === (target||'').toLowerCase());
-      if (found) return message.reply(`🎯 **${found.name}** | IP: \`${found.ip}\``);
-      return message.reply(`❓ **${target}** not found.`);
-    }
-  }
-
-if (message.channel.id === CHAT_CHANNEL_ID) {
     io.emit('chat message', {
-      sender:  "Admin", // Yahan fix kar diya gaya hai
-      message: message.content,
-      id:      'd-' + Date.now(),
-      isVip:   true,
-      type:    'text'
+        id: 'd-' + Date.now(),
+        sender: 'Admin',
+        message: message.content,
+        type: 'text',
+        isVip: true,
+        createdAt: new Date()
     });
-  }
 });
 
-// ── SOCKET.IO ─────────────────────────────────────────────────────────────────
+// ── 8. SOCKET.IO (WEB LOGIC) ────────────────────────────────────────────────
 io.on('connection', (socket) => {
-  const userIP = getIP(socket);
-  let currentUserName = '';
+    const userIP = getIP(socket);
+    let currentUserName = '';
 
-  if (bannedIPs[userIP] && Date.now() < bannedIPs[userIP]) {
-    socket.emit('ban_alert', '🚫 Your IP is banned!');
-    return socket.disconnect();
-  }
+    socket.on('join', (data) => {
+        const name = (data.name || '').trim();
+        const bio = (data.bio || 'No bio').trim();
+        const nameLower = name.toLowerCase();
 
-  // ── JOIN ───────────────────────────────────────────────────────────────────
-  socket.on('join', (data) => {
-    let username = ((typeof data === 'object' ? data.name : data) || '').trim();
-    const bio     = (typeof data === 'object' ? data.bio  : '') || 'No bio';
-    const isGuest = typeof data === 'object' ? !!data.isGuest : false;
-    const avatar  = typeof data === 'object' ? (data.avatar || null) : null;
+        if (bannedUsernames.has(nameLower)) return socket.emit('duplicate', 'You are banned from this chat.');
+        if (Object.values(users).some(u => u.name.toLowerCase() === nameLower)) return socket.emit('duplicate', 'Name is already in use.');
 
-    if (isGuest) {
-      username = 'Guest_' + Math.floor(Math.random() * 90000 + 10000);
-    }
+        currentUserName = name;
+        users[socket.id] = { 
+            name, 
+            bio, 
+            ip: userIP, 
+            isVip: vips.has(nameLower) || name === ADMIN_NAME 
+        };
+        
+        socket.join(`user:${nameLower}`);
+        socket.emit('joined');
+        io.emit('user list', buildUserList());
+        io.emit('system message', `${name} joined the chat`);
+        updateDiscordStatus();
 
-    if (!username) return;
-    const nameLower = username.toLowerCase();
+        const embed = new EmbedBuilder()
+            .setColor('#2ecc71')
+            .setTitle('📥 New Join')
+            .setDescription(`**Name:** ${name}\n**IP:** \`${userIP}\`\n**Bio:** ${bio}`)
+            .setTimestamp();
+        client.channels.cache.get(MOD_LOG_CHANNEL_ID)?.send({ embeds: [embed] });
+    });
 
-    if (blacklisted.has(nameLower))
-      return socket.emit('ban_alert', '⛔ Aapka account blacklist kar diya gaya hai.');
+    socket.on('chat message', (data) => {
+        if (!currentUserName) return;
+        const payload = { 
+            ...data, 
+            sender: currentUserName, 
+            isVip: users[socket.id]?.isVip || false, 
+            createdAt: new Date() 
+        };
+        
+        if (!shadowBanned.has(currentUserName.toLowerCase())) {
+            socket.broadcast.emit('chat message', payload);
+            if (payload.type === 'text') {
+                client.channels.cache.get(CHAT_CHANNEL_ID)?.send(`**${currentUserName}**: ${payload.message}`);
+            }
+        } else {
+            socket.emit('chat message', payload);
+        }
+    });
 
-    if (!isGuest && bannedUsernames.has(nameLower))
-      return socket.emit('duplicate', `"${username}" username available nahi hai.`);
+    socket.on('private message', (data) => {
+        if (!currentUserName) return;
+        socket.to(`user:${data.receiver.toLowerCase()}`).emit('private message', { 
+            ...data, 
+            sender: currentUserName, 
+            createdAt: new Date() 
+        });
+    });
 
-    if (Object.values(users).some(u => u.name.toLowerCase() === nameLower))
-      return socket.emit('duplicate', `"${username}" abhi koi use kar raha hai!`);
+    socket.on('report user', (data) => {
+        const embed = new EmbedBuilder()
+            .setColor('#ff4757')
+            .setTitle('🚩 New Report')
+            .addFields(
+                { name: 'Target', value: data.reportedUser, inline: true },
+                { name: 'Reason', value: data.reason, inline: true },
+                { name: 'Reporter', value: data.reportedBy, inline: true },
+                { name: 'Description', value: data.description || 'No details' }
+            )
+            .setTimestamp();
+        client.channels.cache.get(MOD_LOG_CHANNEL_ID)?.send({ embeds: [embed] });
+    });
 
-    currentUserName = username;
-    users[socket.id] = { name: username, ip: userIP, bio, isVip: vips.has(nameLower), isGuest, avatar, joinedAt: Date.now() };
+    socket.on('typing', () => socket.broadcast.emit('typing', { user: currentUserName }));
+    socket.on('delete message', (id) => io.emit('delete message', id));
 
-    if (!isGuest) { bannedUsernames.add(nameLower); saveBanned(); }
-
-    // Personal room for DMs
-    socket.join(`user:${nameLower}`);
-
-    socket.emit('joined', { username, isGuest });
-    io.emit('user list', buildUserList());
-    io.emit('system message', `${username}${isGuest ? ' 👻' : ''} joined the chat`);
-    updateDiscordStatus();
-
-    const joinEmbed = new EmbedBuilder()
-      .setColor(isGuest ? '#888888' : '#2ecc71')
-      .setTitle(`🚀 ${username} joined!`)
-      .addFields(
-        { name: '👤 User',  value: `**${username}**`,  inline: true },
-        { name: '📍 IP',    value: `\`${userIP}\``,    inline: true },
-        { name: '🎭 Type',  value: isGuest ? '`👻 Guest`' : '`Member`', inline: true },
-        { name: '📝 Bio',   value: bio,                inline: false }
-      )
-      .setTimestamp();
-    client.channels.cache.get(STATUS_CHANNEL_ID)?.send({ embeds: [joinEmbed] });
-  });
-
-  // ── GROUP CHAT ─────────────────────────────────────────────────────────────
-  socket.on('chat message', (data) => {
-    if (!currentUserName) return;
-    const u = users[socket.id];
-
-    if (u?.isGuest && data.type !== 'text')
-      return socket.emit('system message', '👻 Guests can only send text. Register to unlock more!');
-
-    const payload = {
-      id:      Date.now().toString() + Math.random().toString(36).substr(2, 4),
-      message: data.message,
-      sender:  currentUserName,
-      type:    data.type || 'text',
-      replyTo: data.replyTo || null,
-      isVip:   vips.has(currentUserName.toLowerCase()),
-      isGuest: u?.isGuest || false
-    };
-
-    if (shadowBanned.has(currentUserName.toLowerCase())) {
-      socket.emit('chat message', payload);
-    } else {
-      io.emit('chat message', payload);
-      if (data.type === 'text')
-        client.channels.cache.get(CHAT_CHANNEL_ID)?.send(`**${currentUserName}**: ${data.message}`);
-    }
-  });
-
-  // ── DIRECT MESSAGE ────────────────────────────────────────────────────────
-  socket.on('dm', (data) => {
-    if (!currentUserName) return;
-    const u = users[socket.id];
-    if (u?.isGuest) return socket.emit('dm_error', '👻 Guests cannot DM. Please register!');
-
-    const { to, message, type } = data;
-    if (!to || !message) return;
-
-    const payload = {
-      id:        Date.now().toString() + Math.random().toString(36).substr(2, 4),
-      from:      currentUserName,
-      to:        to,
-      message:   message,
-      type:      type || 'text',
-      timestamp: Date.now()
-    };
-
-    // To recipient
-    socket.to(`user:${to.toLowerCase()}`).emit('dm', payload);
-    // Back to sender
-    socket.emit('dm', payload);
-  });
-
-  // ── DM TYPING ─────────────────────────────────────────────────────────────
-  socket.on('dm_typing', ({ to }) => {
-    if (!currentUserName || !to) return;
-    socket.to(`user:${to.toLowerCase()}`).emit('dm_typing', { from: currentUserName });
-  });
-
-  // ── GROUP TYPING ──────────────────────────────────────────────────────────
-  socket.on('typing', (data) => {
-    socket.broadcast.emit('typing', { user: data.user || currentUserName });
-  });
-
-  // ── DELETE ────────────────────────────────────────────────────────────────
-  socket.on('delete message', (id) => {
-    if (!currentUserName) return;
-    io.emit('delete message', id);
-  });
-
-  // ── UPDATE PROFILE ────────────────────────────────────────────────────────
-  socket.on('update profile', (data) => {
-    const u = users[socket.id];
-    if (!u || u.isGuest) return;
-    if (data.bio    !== undefined) u.bio    = data.bio;
-    if (data.avatar !== undefined) u.avatar = data.avatar;
-    io.emit('user list', buildUserList());
-  });
-
-  // ── DISCONNECT ────────────────────────────────────────────────────────────
-  socket.on('disconnect', () => {
-    if (currentUserName) {
-      const wasGuest = users[socket.id]?.isGuest;
-      lastSeenMap[currentUserName.toLowerCase()] = Date.now();
-      delete users[socket.id];
-      io.emit('user list', buildUserList());
-      io.emit('user_last_seen', { name: currentUserName, lastSeen: lastSeenMap[currentUserName.toLowerCase()] });
-      io.emit('system message', `${currentUserName} left the chat`);
-      updateDiscordStatus();
-    }
-  });
+    socket.on('disconnect', () => {
+        if (currentUserName) {
+            io.emit('system message', `${currentUserName} left the chat`);
+            delete users[socket.id];
+            io.emit('user list', buildUserList());
+            updateDiscordStatus();
+        }
+    });
 });
 
-// ── Static + Start ────────────────────────────────────────────────────────────
+// ── 9. START SERVER ─────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'public')));
 const PORT = process.env.PORT || 4000;
 
 client.on('ready', () => {
-  console.log('✅ Kiko Bot Online!');
-  updateDiscordStatus();
+    console.log(`✅ Discord Bot logged in as ${client.user.tag}`);
+    updateDiscordStatus();
 });
 
-client.login(DISCORD_TOKEN).then(() => {
-  http.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
+client.login(DISCORD_TOKEN).catch(err => console.error("Discord Login Error:", err));
+
+http.listen(PORT, () => {
+    console.log(`🚀 Server listening on port ${PORT}`);
 });
