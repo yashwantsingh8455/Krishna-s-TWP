@@ -271,6 +271,26 @@ client.on('ready', () => {
 
 client.login(DISCORD_TOKEN).catch(err => console.error("Discord Login Error:", err));
 
+
+
+
+
+const path = require('path');
+
+// Public folder ko static banayein
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Root ki files (sw.js aur manifest.json) ko serve karein
+app.get('/sw.js', (req, res) => res.sendFile(path.resolve(__dirname, 'sw.js')));
+app.get('/manifest.json', (req, res) => res.sendFile(path.resolve(__dirname, 'manifest.json')));
+
+// .well-known folder ko allow karein (Security warnings ke liye)
+app.use('/.well-known', express.static(path.join(__dirname, '.well-known'), { dotfiles: 'allow' }));
+
+
+
+
+
 http.listen(PORT, () => {
     console.log(`🚀 Server listening on port ${PORT}`);
 });
