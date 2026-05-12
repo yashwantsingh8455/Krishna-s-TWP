@@ -1,8 +1,6 @@
-self.addEventListener('install', (e) => {
-  console.log('Service Worker: Installed');
+self.addEventListener('install', (event) => {
+  console.log('Service Worker installed.');
 });
-
-self.addEventListener('fetch', (e) => {
-  // Filhal basic rakhte hain taaki error hat jaye
-  e.respondWith(fetch(e.request));
+self.addEventListener('fetch', (event) => {
+  event.respondWith(fetch(event.request));
 });
